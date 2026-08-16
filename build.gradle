@@ -6,7 +6,7 @@ plugins {
 
 group = 'com.jms'
 version = '0.0.1-SNAPSHOT'
-description = 'jangsomoa'
+description = 'example-assignment1'
 
 java {
     toolchain {
