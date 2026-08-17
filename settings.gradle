@@ -1,1 +1,8 @@
 rootProject.name = 'example-assignment1'
+
+include 'domain'
+include 'application'
+include 'infrastructure'
+include 'api'
+
+
