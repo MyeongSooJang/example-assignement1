@@ -1,8 +1,9 @@
 package com.jms.assignment1.problem;
 
-import lombok.AllArgsConstructor;
-
-@AllArgsConstructor
 public class ShortAnswerProblem extends Problem {
-    private String correctAnswer;
+    private final String correctAnswer;
+
+    public ShortAnswerProblem(String correctAnswer) {
+        this.correctAnswer = correctAnswer;
+    }
 }
