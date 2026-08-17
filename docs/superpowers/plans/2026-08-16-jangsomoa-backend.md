@@ -1,4 +1,4 @@
-# jangsomoa Backend Implementation Plan
+# assignment1 Backend Implementation Plan
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
@@ -12,7 +12,7 @@
 
 - Java 21 (pattern matching instanceof, records 적극 활용)
 - Spring Boot 4.1.0 (BOM으로 모든 의존성 버전 관리)
-- 기본 패키지: `com.jms.jangsomoa`
+- 기본 패키지: `com.jms.assignment1`
 - domain 모듈에 Spring/JPA 어노테이션 절대 금지
 - Lombok `@Getter @RequiredArgsConstructor` 사용 (도메인 객체는 불변)
 - 테스트: domain/application은 순수 JUnit5+Mockito, infrastructure는 @DataJpaTest+H2, api는 @SpringBootTest+MockMvc
@@ -34,7 +34,7 @@
 **Interfaces:**
 - Produces: 빌드 가능한 4-모듈 Gradle 프로젝트
 
-- [ ] **Step 1: root build.gradle 교체**
+- [x] **Step 1: root build.gradle 교체**
 
 ```groovy
 // build.gradle (root)
@@ -72,7 +72,7 @@ subprojects {
 - [ ] **Step 2: settings.gradle 교체**
 
 ```groovy
-rootProject.name = 'jangsomoa'
+rootProject.name = 'assignment1'
 include 'domain', 'application', 'infrastructure', 'api'
 ```
 
@@ -160,15 +160,15 @@ tasks.named('test') { useJUnitPlatform() }
 - [ ] **Step 4: 모듈 디렉토리 구조 생성**
 
 ```bash
-mkdir -p domain/src/main/java/com/jms/jangsomoa/domain
-mkdir -p domain/src/test/java/com/jms/jangsomoa/domain
-mkdir -p application/src/main/java/com/jms/jangsomoa/application
-mkdir -p application/src/test/java/com/jms/jangsomoa/application
-mkdir -p infrastructure/src/main/java/com/jms/jangsomoa/infrastructure
-mkdir -p infrastructure/src/test/java/com/jms/jangsomoa/infrastructure
-mkdir -p api/src/main/java/com/jms/jangsomoa
+mkdir -p domain/src/main/java/com/jms/assignment1/domain
+mkdir -p domain/src/test/java/com/jms/assignment1/domain
+mkdir -p application/src/main/java/com/jms/assignment1/application
+mkdir -p application/src/test/java/com/jms/assignment1/application
+mkdir -p infrastructure/src/main/java/com/jms/assignment1/infrastructure
+mkdir -p infrastructure/src/test/java/com/jms/assignment1/infrastructure
+mkdir -p api/src/main/java/com/jms/assignment1
 mkdir -p api/src/main/resources
-mkdir -p api/src/test/java/com/jms/jangsomoa/api
+mkdir -p api/src/test/java/com/jms/assignment1/api
 mkdir -p api/src/test/resources
 ```
 
@@ -176,12 +176,12 @@ mkdir -p api/src/test/resources
 
 ```bash
 # Application 클래스 이동
-mv src/main/java/com/jms/jangsomoa/JangsomoaApplication.java \
-   api/src/main/java/com/jms/jangsomoa/JangsomoaApplication.java
+mv src/main/java/com/jms/assignment1/Assignment1Application.java \
+   api/src/main/java/com/jms/assignment1/Assignment1Application.java
 
 # 테스트 이동
-mv src/test/java/com/jms/jangsomoa/JangsomoaApplicationTests.java \
-   api/src/test/java/com/jms/jangsomoa/JangsomoaApplicationTests.java
+mv src/test/java/com/jms/assignment1/Assignment1ApplicationTests.java \
+   api/src/test/java/com/jms/assignment1/Assignment1ApplicationTests.java
 
 # 설정 이동 (application.properties → application.yml로 변환 예정)
 rm src/main/resources/application.properties
@@ -195,7 +195,7 @@ rm -rf src/
 ```yaml
 spring:
   datasource:
-    url: jdbc:mysql://localhost:3306/jangsomoa?serverTimezone=UTC&characterEncoding=UTF-8
+    url: jdbc:mysql://localhost:3306/assignment1?serverTimezone=UTC&characterEncoding=UTF-8
     username: ${DB_USERNAME:root}
     password: ${DB_PASSWORD:root}
     driver-class-name: com.mysql.cj.jdbc.Driver
@@ -223,9 +223,9 @@ Expected: `BUILD SUCCESSFUL`
 ```bash
 git add build.gradle settings.gradle domain/build.gradle application/build.gradle \
         infrastructure/build.gradle api/build.gradle \
-        api/src/main/java/com/jms/jangsomoa/JangsomoaApplication.java \
+        api/src/main/java/com/jms/assignment1/Assignment1Application.java \
         api/src/main/resources/application.yml \
-        api/src/test/java/com/jms/jangsomoa/JangsomoaApplicationTests.java
+        api/src/test/java/com/jms/assignment1/Assignment1ApplicationTests.java
 git commit -m "build: convert to 4-module Gradle project (domain/application/infrastructure/api)"
 ```
 
@@ -234,18 +234,18 @@ git commit -m "build: convert to 4-module Gradle project (domain/application/inf
 ### Task 2: Domain — Problem 계층 + Answer 계층 + CorrectRateCalculator
 
 **Files:**
-- Create: `domain/src/main/java/com/jms/jangsomoa/domain/answer/AnswerStatus.java`
-- Create: `domain/src/main/java/com/jms/jangsomoa/domain/answer/AnswerType.java`
-- Create: `domain/src/main/java/com/jms/jangsomoa/domain/answer/UserAnswer.java`
-- Create: `domain/src/main/java/com/jms/jangsomoa/domain/answer/MultipleChoiceAnswer.java`
-- Create: `domain/src/main/java/com/jms/jangsomoa/domain/answer/ShortAnswer.java`
-- Create: `domain/src/main/java/com/jms/jangsomoa/domain/problem/Problem.java`
-- Create: `domain/src/main/java/com/jms/jangsomoa/domain/problem/MultipleChoiceProblem.java`
-- Create: `domain/src/main/java/com/jms/jangsomoa/domain/problem/ShortAnswerProblem.java`
-- Create: `domain/src/main/java/com/jms/jangsomoa/domain/service/CorrectRateCalculator.java`
-- Test: `domain/src/test/java/com/jms/jangsomoa/domain/problem/MultipleChoiceProblemTest.java`
-- Test: `domain/src/test/java/com/jms/jangsomoa/domain/problem/ShortAnswerProblemTest.java`
-- Test: `domain/src/test/java/com/jms/jangsomoa/domain/service/CorrectRateCalculatorTest.java`
+- Create: `domain/src/main/java/com/jms/assignment1/domain/answer/AnswerStatus.java`
+- Create: `domain/src/main/java/com/jms/assignment1/domain/answer/AnswerType.java`
+- Create: `domain/src/main/java/com/jms/assignment1/domain/answer/UserAnswer.java`
+- Create: `domain/src/main/java/com/jms/assignment1/domain/answer/MultipleChoiceAnswer.java`
+- Create: `domain/src/main/java/com/jms/assignment1/domain/answer/ShortAnswer.java`
+- Create: `domain/src/main/java/com/jms/assignment1/domain/problem/Problem.java`
+- Create: `domain/src/main/java/com/jms/assignment1/domain/problem/MultipleChoiceProblem.java`
+- Create: `domain/src/main/java/com/jms/assignment1/domain/problem/ShortAnswerProblem.java`
+- Create: `domain/src/main/java/com/jms/assignment1/domain/service/CorrectRateCalculator.java`
+- Test: `domain/src/test/java/com/jms/assignment1/domain/problem/MultipleChoiceProblemTest.java`
+- Test: `domain/src/test/java/com/jms/assignment1/domain/problem/ShortAnswerProblemTest.java`
+- Test: `domain/src/test/java/com/jms/assignment1/domain/service/CorrectRateCalculatorTest.java`
 
 **Interfaces:**
 - Produces:
@@ -262,11 +262,11 @@ git commit -m "build: convert to 4-module Gradle project (domain/application/inf
 - [ ] **Step 1: 테스트 먼저 작성**
 
 ```java
-// domain/src/test/java/com/jms/jangsomoa/domain/problem/MultipleChoiceProblemTest.java
-package com.jms.jangsomoa.domain.problem;
+// domain/src/test/java/com/jms/assignment1/domain/problem/MultipleChoiceProblemTest.java
+package com.jms.assignment1.domain.problem;
 
-import com.jms.jangsomoa.domain.answer.AnswerStatus;
-import com.jms.jangsomoa.domain.answer.MultipleChoiceAnswer;
+import com.jms.assignment1.domain.answer.AnswerStatus;
+import com.jms.assignment1.domain.answer.MultipleChoiceAnswer;
 import org.junit.jupiter.api.Test;
 import java.util.List;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -303,11 +303,11 @@ class MultipleChoiceProblemTest {
 ```
 
 ```java
-// domain/src/test/java/com/jms/jangsomoa/domain/problem/ShortAnswerProblemTest.java
-package com.jms.jangsomoa.domain.problem;
+// domain/src/test/java/com/jms/assignment1/domain/problem/ShortAnswerProblemTest.java
+package com.jms.assignment1.domain.problem;
 
-import com.jms.jangsomoa.domain.answer.AnswerStatus;
-import com.jms.jangsomoa.domain.answer.ShortAnswer;
+import com.jms.assignment1.domain.answer.AnswerStatus;
+import com.jms.assignment1.domain.answer.ShortAnswer;
 import org.junit.jupiter.api.Test;
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -333,10 +333,10 @@ class ShortAnswerProblemTest {
 ```
 
 ```java
-// domain/src/test/java/com/jms/jangsomoa/domain/service/CorrectRateCalculatorTest.java
-package com.jms.jangsomoa.domain.service;
+// domain/src/test/java/com/jms/assignment1/domain/service/CorrectRateCalculatorTest.java
+package com.jms.assignment1.domain.service;
 
-import com.jms.jangsomoa.domain.answer.AnswerStatus;
+import com.jms.assignment1.domain.answer.AnswerStatus;
 import org.junit.jupiter.api.Test;
 import java.util.ArrayList;
 import java.util.List;
@@ -388,28 +388,28 @@ Expected: FAIL (클래스 없음)
 - [ ] **Step 3: 구현**
 
 ```java
-// domain/src/main/java/com/jms/jangsomoa/domain/answer/AnswerStatus.java
-package com.jms.jangsomoa.domain.answer;
+// domain/src/main/java/com/jms/assignment1/domain/answer/AnswerStatus.java
+package com.jms.assignment1.domain.answer;
 public enum AnswerStatus { CORRECT, PARTIAL, INCORRECT }
 ```
 
 ```java
-// domain/src/main/java/com/jms/jangsomoa/domain/answer/AnswerType.java
-package com.jms.jangsomoa.domain.answer;
+// domain/src/main/java/com/jms/assignment1/domain/answer/AnswerType.java
+package com.jms.assignment1.domain.answer;
 public enum AnswerType { MULTIPLE_CHOICE, SHORT_ANSWER }
 ```
 
 ```java
-// domain/src/main/java/com/jms/jangsomoa/domain/answer/UserAnswer.java
-package com.jms.jangsomoa.domain.answer;
+// domain/src/main/java/com/jms/assignment1/domain/answer/UserAnswer.java
+package com.jms.assignment1.domain.answer;
 public abstract class UserAnswer {
     public abstract AnswerType getType();
 }
 ```
 
 ```java
-// domain/src/main/java/com/jms/jangsomoa/domain/answer/MultipleChoiceAnswer.java
-package com.jms.jangsomoa.domain.answer;
+// domain/src/main/java/com/jms/assignment1/domain/answer/MultipleChoiceAnswer.java
+package com.jms.assignment1.domain.answer;
 
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
@@ -426,8 +426,8 @@ public class MultipleChoiceAnswer extends UserAnswer {
 ```
 
 ```java
-// domain/src/main/java/com/jms/jangsomoa/domain/answer/ShortAnswer.java
-package com.jms.jangsomoa.domain.answer;
+// domain/src/main/java/com/jms/assignment1/domain/answer/ShortAnswer.java
+package com.jms.assignment1.domain.answer;
 
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
@@ -443,8 +443,8 @@ public class ShortAnswer extends UserAnswer {
 ```
 
 ```java
-// domain/src/main/java/com/jms/jangsomoa/domain/problem/Problem.java
-package com.jms.jangsomoa.domain.problem;
+// domain/src/main/java/com/jms/assignment1/domain/problem/Problem.java
+package com.jms.assignment1.domain.problem;
 
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
@@ -460,11 +460,11 @@ public abstract class Problem {
 ```
 
 ```java
-// domain/src/main/java/com/jms/jangsomoa/domain/problem/MultipleChoiceProblem.java
-package com.jms.jangsomoa.domain.problem;
+// domain/src/main/java/com/jms/assignment1/domain/problem/MultipleChoiceProblem.java
+package com.jms.assignment1.domain.problem;
 
-import com.jms.jangsomoa.domain.answer.AnswerStatus;
-import com.jms.jangsomoa.domain.answer.MultipleChoiceAnswer;
+import com.jms.assignment1.domain.answer.AnswerStatus;
+import com.jms.assignment1.domain.answer.MultipleChoiceAnswer;
 import lombok.Getter;
 import java.util.HashSet;
 import java.util.List;
@@ -493,11 +493,11 @@ public class MultipleChoiceProblem extends Problem {
 ```
 
 ```java
-// domain/src/main/java/com/jms/jangsomoa/domain/problem/ShortAnswerProblem.java
-package com.jms.jangsomoa.domain.problem;
+// domain/src/main/java/com/jms/assignment1/domain/problem/ShortAnswerProblem.java
+package com.jms.assignment1.domain.problem;
 
-import com.jms.jangsomoa.domain.answer.AnswerStatus;
-import com.jms.jangsomoa.domain.answer.ShortAnswer;
+import com.jms.assignment1.domain.answer.AnswerStatus;
+import com.jms.assignment1.domain.answer.ShortAnswer;
 import lombok.Getter;
 
 @Getter
@@ -518,10 +518,10 @@ public class ShortAnswerProblem extends Problem {
 ```
 
 ```java
-// domain/src/main/java/com/jms/jangsomoa/domain/service/CorrectRateCalculator.java
-package com.jms.jangsomoa.domain.service;
+// domain/src/main/java/com/jms/assignment1/domain/service/CorrectRateCalculator.java
+package com.jms.assignment1.domain.service;
 
-import com.jms.jangsomoa.domain.answer.AnswerStatus;
+import com.jms.assignment1.domain.answer.AnswerStatus;
 import java.util.List;
 
 public class CorrectRateCalculator {
@@ -555,21 +555,21 @@ git commit -m "feat: add domain problem/answer hierarchy and CorrectRateCalculat
 ### Task 3: Domain — 나머지 엔티티 + Repository 인터페이스 + 예외
 
 **Files:**
-- Create: `domain/src/main/java/com/jms/jangsomoa/domain/user/User.java`
-- Create: `domain/src/main/java/com/jms/jangsomoa/domain/chapter/Chapter.java`
-- Create: `domain/src/main/java/com/jms/jangsomoa/domain/chapter/UserChapterSkip.java`
-- Create: `domain/src/main/java/com/jms/jangsomoa/domain/history/UserProblemHistory.java`
-- Create: `domain/src/main/java/com/jms/jangsomoa/domain/repository/ProblemRepository.java`
-- Create: `domain/src/main/java/com/jms/jangsomoa/domain/repository/UserProblemHistoryRepository.java`
-- Create: `domain/src/main/java/com/jms/jangsomoa/domain/repository/ChapterRepository.java`
-- Create: `domain/src/main/java/com/jms/jangsomoa/domain/repository/UserChapterSkipRepository.java`
-- Create: `domain/src/main/java/com/jms/jangsomoa/domain/repository/UserRepository.java`
-- Create: `domain/src/main/java/com/jms/jangsomoa/domain/exception/DomainException.java`
-- Create: `domain/src/main/java/com/jms/jangsomoa/domain/exception/ProblemNotFoundException.java`
-- Create: `domain/src/main/java/com/jms/jangsomoa/domain/exception/UserNotFoundException.java`
-- Create: `domain/src/main/java/com/jms/jangsomoa/domain/exception/ChapterNotFoundException.java`
-- Create: `domain/src/main/java/com/jms/jangsomoa/domain/exception/NoAvailableProblemException.java`
-- Create: `domain/src/main/java/com/jms/jangsomoa/domain/exception/ProblemHistoryNotFoundException.java`
+- Create: `domain/src/main/java/com/jms/assignment1/domain/user/User.java`
+- Create: `domain/src/main/java/com/jms/assignment1/domain/chapter/Chapter.java`
+- Create: `domain/src/main/java/com/jms/assignment1/domain/chapter/UserChapterSkip.java`
+- Create: `domain/src/main/java/com/jms/assignment1/domain/history/UserProblemHistory.java`
+- Create: `domain/src/main/java/com/jms/assignment1/domain/repository/ProblemRepository.java`
+- Create: `domain/src/main/java/com/jms/assignment1/domain/repository/UserProblemHistoryRepository.java`
+- Create: `domain/src/main/java/com/jms/assignment1/domain/repository/ChapterRepository.java`
+- Create: `domain/src/main/java/com/jms/assignment1/domain/repository/UserChapterSkipRepository.java`
+- Create: `domain/src/main/java/com/jms/assignment1/domain/repository/UserRepository.java`
+- Create: `domain/src/main/java/com/jms/assignment1/domain/exception/DomainException.java`
+- Create: `domain/src/main/java/com/jms/assignment1/domain/exception/ProblemNotFoundException.java`
+- Create: `domain/src/main/java/com/jms/assignment1/domain/exception/UserNotFoundException.java`
+- Create: `domain/src/main/java/com/jms/assignment1/domain/exception/ChapterNotFoundException.java`
+- Create: `domain/src/main/java/com/jms/assignment1/domain/exception/NoAvailableProblemException.java`
+- Create: `domain/src/main/java/com/jms/assignment1/domain/exception/ProblemHistoryNotFoundException.java`
 
 **Interfaces:**
 - Consumes: Task 2의 `AnswerStatus`, `UserAnswer`
@@ -584,8 +584,8 @@ git commit -m "feat: add domain problem/answer hierarchy and CorrectRateCalculat
 - [ ] **Step 1: 엔티티 클래스 작성**
 
 ```java
-// domain/src/main/java/com/jms/jangsomoa/domain/user/User.java
-package com.jms.jangsomoa.domain.user;
+// domain/src/main/java/com/jms/assignment1/domain/user/User.java
+package com.jms.assignment1.domain.user;
 
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
@@ -599,8 +599,8 @@ public class User {
 ```
 
 ```java
-// domain/src/main/java/com/jms/jangsomoa/domain/chapter/Chapter.java
-package com.jms.jangsomoa.domain.chapter;
+// domain/src/main/java/com/jms/assignment1/domain/chapter/Chapter.java
+package com.jms.assignment1.domain.chapter;
 
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
@@ -614,8 +614,8 @@ public class Chapter {
 ```
 
 ```java
-// domain/src/main/java/com/jms/jangsomoa/domain/chapter/UserChapterSkip.java
-package com.jms.jangsomoa.domain.chapter;
+// domain/src/main/java/com/jms/assignment1/domain/chapter/UserChapterSkip.java
+package com.jms.assignment1.domain.chapter;
 
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
@@ -631,11 +631,11 @@ public class UserChapterSkip {
 ```
 
 ```java
-// domain/src/main/java/com/jms/jangsomoa/domain/history/UserProblemHistory.java
-package com.jms.jangsomoa.domain.history;
+// domain/src/main/java/com/jms/assignment1/domain/history/UserProblemHistory.java
+package com.jms.assignment1.domain.history;
 
-import com.jms.jangsomoa.domain.answer.AnswerStatus;
-import com.jms.jangsomoa.domain.answer.UserAnswer;
+import com.jms.assignment1.domain.answer.AnswerStatus;
+import com.jms.assignment1.domain.answer.UserAnswer;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
@@ -658,10 +658,10 @@ public class UserProblemHistory {
 - [ ] **Step 2: Repository 인터페이스 작성**
 
 ```java
-// domain/src/main/java/com/jms/jangsomoa/domain/repository/ProblemRepository.java
-package com.jms.jangsomoa.domain.repository;
+// domain/src/main/java/com/jms/assignment1/domain/repository/ProblemRepository.java
+package com.jms.assignment1.domain.repository;
 
-import com.jms.jangsomoa.domain.problem.Problem;
+import com.jms.assignment1.domain.problem.Problem;
 import java.util.List;
 import java.util.Optional;
 
@@ -672,11 +672,11 @@ public interface ProblemRepository {
 ```
 
 ```java
-// domain/src/main/java/com/jms/jangsomoa/domain/repository/UserProblemHistoryRepository.java
-package com.jms.jangsomoa.domain.repository;
+// domain/src/main/java/com/jms/assignment1/domain/repository/UserProblemHistoryRepository.java
+package com.jms.assignment1.domain.repository;
 
-import com.jms.jangsomoa.domain.answer.AnswerStatus;
-import com.jms.jangsomoa.domain.history.UserProblemHistory;
+import com.jms.assignment1.domain.answer.AnswerStatus;
+import com.jms.assignment1.domain.history.UserProblemHistory;
 import java.util.List;
 import java.util.Optional;
 
@@ -689,10 +689,10 @@ public interface UserProblemHistoryRepository {
 ```
 
 ```java
-// domain/src/main/java/com/jms/jangsomoa/domain/repository/ChapterRepository.java
-package com.jms.jangsomoa.domain.repository;
+// domain/src/main/java/com/jms/assignment1/domain/repository/ChapterRepository.java
+package com.jms.assignment1.domain.repository;
 
-import com.jms.jangsomoa.domain.chapter.Chapter;
+import com.jms.assignment1.domain.chapter.Chapter;
 import java.util.Optional;
 
 public interface ChapterRepository {
@@ -701,8 +701,8 @@ public interface ChapterRepository {
 ```
 
 ```java
-// domain/src/main/java/com/jms/jangsomoa/domain/repository/UserChapterSkipRepository.java
-package com.jms.jangsomoa.domain.repository;
+// domain/src/main/java/com/jms/assignment1/domain/repository/UserChapterSkipRepository.java
+package com.jms.assignment1.domain.repository;
 
 import java.util.Optional;
 
@@ -713,10 +713,10 @@ public interface UserChapterSkipRepository {
 ```
 
 ```java
-// domain/src/main/java/com/jms/jangsomoa/domain/repository/UserRepository.java
-package com.jms.jangsomoa.domain.repository;
+// domain/src/main/java/com/jms/assignment1/domain/repository/UserRepository.java
+package com.jms.assignment1.domain.repository;
 
-import com.jms.jangsomoa.domain.user.User;
+import com.jms.assignment1.domain.user.User;
 import java.util.Optional;
 
 public interface UserRepository {
@@ -727,8 +727,8 @@ public interface UserRepository {
 - [ ] **Step 3: 예외 클래스 작성**
 
 ```java
-// domain/src/main/java/com/jms/jangsomoa/domain/exception/DomainException.java
-package com.jms.jangsomoa.domain.exception;
+// domain/src/main/java/com/jms/assignment1/domain/exception/DomainException.java
+package com.jms.assignment1.domain.exception;
 
 public abstract class DomainException extends RuntimeException {
     protected DomainException(String message) { super(message); }
@@ -736,8 +736,8 @@ public abstract class DomainException extends RuntimeException {
 ```
 
 ```java
-// domain/src/main/java/com/jms/jangsomoa/domain/exception/ProblemNotFoundException.java
-package com.jms.jangsomoa.domain.exception;
+// domain/src/main/java/com/jms/assignment1/domain/exception/ProblemNotFoundException.java
+package com.jms.assignment1.domain.exception;
 
 public class ProblemNotFoundException extends DomainException {
     public ProblemNotFoundException(Long id) { super("Problem not found: " + id); }
@@ -745,8 +745,8 @@ public class ProblemNotFoundException extends DomainException {
 ```
 
 ```java
-// domain/src/main/java/com/jms/jangsomoa/domain/exception/UserNotFoundException.java
-package com.jms.jangsomoa.domain.exception;
+// domain/src/main/java/com/jms/assignment1/domain/exception/UserNotFoundException.java
+package com.jms.assignment1.domain.exception;
 
 public class UserNotFoundException extends DomainException {
     public UserNotFoundException(Long id) { super("User not found: " + id); }
@@ -754,8 +754,8 @@ public class UserNotFoundException extends DomainException {
 ```
 
 ```java
-// domain/src/main/java/com/jms/jangsomoa/domain/exception/ChapterNotFoundException.java
-package com.jms.jangsomoa.domain.exception;
+// domain/src/main/java/com/jms/assignment1/domain/exception/ChapterNotFoundException.java
+package com.jms.assignment1.domain.exception;
 
 public class ChapterNotFoundException extends DomainException {
     public ChapterNotFoundException(Long id) { super("Chapter not found: " + id); }
@@ -763,8 +763,8 @@ public class ChapterNotFoundException extends DomainException {
 ```
 
 ```java
-// domain/src/main/java/com/jms/jangsomoa/domain/exception/NoAvailableProblemException.java
-package com.jms.jangsomoa.domain.exception;
+// domain/src/main/java/com/jms/assignment1/domain/exception/NoAvailableProblemException.java
+package com.jms.assignment1.domain.exception;
 
 public class NoAvailableProblemException extends DomainException {
     public NoAvailableProblemException() { super("No available problem in this chapter"); }
@@ -772,8 +772,8 @@ public class NoAvailableProblemException extends DomainException {
 ```
 
 ```java
-// domain/src/main/java/com/jms/jangsomoa/domain/exception/ProblemHistoryNotFoundException.java
-package com.jms.jangsomoa.domain.exception;
+// domain/src/main/java/com/jms/assignment1/domain/exception/ProblemHistoryNotFoundException.java
+package com.jms.assignment1.domain.exception;
 
 public class ProblemHistoryNotFoundException extends DomainException {
     public ProblemHistoryNotFoundException(Long userId, Long problemId) {
@@ -802,10 +802,10 @@ git commit -m "feat: add domain entities, repository interfaces, and exceptions"
 ### Task 4: Application — GetRandomProblemUseCase
 
 **Files:**
-- Create: `application/src/main/java/com/jms/jangsomoa/application/problem/GetRandomProblemCommand.java`
-- Create: `application/src/main/java/com/jms/jangsomoa/application/problem/GetRandomProblemResult.java`
-- Create: `application/src/main/java/com/jms/jangsomoa/application/problem/GetRandomProblemUseCase.java`
-- Test: `application/src/test/java/com/jms/jangsomoa/application/problem/GetRandomProblemUseCaseTest.java`
+- Create: `application/src/main/java/com/jms/assignment1/application/problem/GetRandomProblemCommand.java`
+- Create: `application/src/main/java/com/jms/assignment1/application/problem/GetRandomProblemResult.java`
+- Create: `application/src/main/java/com/jms/assignment1/application/problem/GetRandomProblemUseCase.java`
+- Test: `application/src/test/java/com/jms/assignment1/application/problem/GetRandomProblemUseCaseTest.java`
 
 **Interfaces:**
 - Consumes: `ChapterRepository`, `ProblemRepository`, `UserProblemHistoryRepository`, `UserChapterSkipRepository`, `UserRepository`, `CorrectRateCalculator`, 도메인 예외 5종
@@ -816,18 +816,18 @@ git commit -m "feat: add domain entities, repository interfaces, and exceptions"
 - [ ] **Step 1: 테스트 작성**
 
 ```java
-// application/src/test/java/com/jms/jangsomoa/application/problem/GetRandomProblemUseCaseTest.java
-package com.jms.jangsomoa.application.problem;
+// application/src/test/java/com/jms/assignment1/application/problem/GetRandomProblemUseCaseTest.java
+package com.jms.assignment1.application.problem;
 
-import com.jms.jangsomoa.domain.answer.AnswerStatus;
-import com.jms.jangsomoa.domain.chapter.Chapter;
-import com.jms.jangsomoa.domain.exception.ChapterNotFoundException;
-import com.jms.jangsomoa.domain.exception.NoAvailableProblemException;
-import com.jms.jangsomoa.domain.exception.UserNotFoundException;
-import com.jms.jangsomoa.domain.problem.MultipleChoiceProblem;
-import com.jms.jangsomoa.domain.problem.Problem;
-import com.jms.jangsomoa.domain.repository.*;
-import com.jms.jangsomoa.domain.user.User;
+import com.jms.assignment1.domain.answer.AnswerStatus;
+import com.jms.assignment1.domain.chapter.Chapter;
+import com.jms.assignment1.domain.exception.ChapterNotFoundException;
+import com.jms.assignment1.domain.exception.NoAvailableProblemException;
+import com.jms.assignment1.domain.exception.UserNotFoundException;
+import com.jms.assignment1.domain.problem.MultipleChoiceProblem;
+import com.jms.assignment1.domain.problem.Problem;
+import com.jms.assignment1.domain.repository.*;
+import com.jms.assignment1.domain.user.User;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -950,15 +950,15 @@ Expected: FAIL (클래스 없음)
 - [ ] **Step 3: Command/Result 레코드 작성**
 
 ```java
-// application/src/main/java/com/jms/jangsomoa/application/problem/GetRandomProblemCommand.java
-package com.jms.jangsomoa.application.problem;
+// application/src/main/java/com/jms/assignment1/application/problem/GetRandomProblemCommand.java
+package com.jms.assignment1.application.problem;
 
 public record GetRandomProblemCommand(Long userId, Long chapterId) {}
 ```
 
 ```java
-// application/src/main/java/com/jms/jangsomoa/application/problem/GetRandomProblemResult.java
-package com.jms.jangsomoa.application.problem;
+// application/src/main/java/com/jms/assignment1/application/problem/GetRandomProblemResult.java
+package com.jms.assignment1.application.problem;
 
 import java.util.List;
 
@@ -973,14 +973,14 @@ public record GetRandomProblemResult(
 - [ ] **Step 4: UseCase 구현**
 
 ```java
-// application/src/main/java/com/jms/jangsomoa/application/problem/GetRandomProblemUseCase.java
-package com.jms.jangsomoa.application.problem;
+// application/src/main/java/com/jms/assignment1/application/problem/GetRandomProblemUseCase.java
+package com.jms.assignment1.application.problem;
 
-import com.jms.jangsomoa.domain.exception.*;
-import com.jms.jangsomoa.domain.problem.MultipleChoiceProblem;
-import com.jms.jangsomoa.domain.problem.Problem;
-import com.jms.jangsomoa.domain.repository.*;
-import com.jms.jangsomoa.domain.service.CorrectRateCalculator;
+import com.jms.assignment1.domain.exception.*;
+import com.jms.assignment1.domain.problem.MultipleChoiceProblem;
+import com.jms.assignment1.domain.problem.Problem;
+import com.jms.assignment1.domain.repository.*;
+import com.jms.assignment1.domain.service.CorrectRateCalculator;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -1053,10 +1053,10 @@ git commit -m "feat: add GetRandomProblemUseCase"
 ### Task 5: Application — SubmitAnswerUseCase
 
 **Files:**
-- Create: `application/src/main/java/com/jms/jangsomoa/application/problem/SubmitAnswerCommand.java`
-- Create: `application/src/main/java/com/jms/jangsomoa/application/problem/SubmitAnswerResult.java`
-- Create: `application/src/main/java/com/jms/jangsomoa/application/problem/SubmitAnswerUseCase.java`
-- Test: `application/src/test/java/com/jms/jangsomoa/application/problem/SubmitAnswerUseCaseTest.java`
+- Create: `application/src/main/java/com/jms/assignment1/application/problem/SubmitAnswerCommand.java`
+- Create: `application/src/main/java/com/jms/assignment1/application/problem/SubmitAnswerResult.java`
+- Create: `application/src/main/java/com/jms/assignment1/application/problem/SubmitAnswerUseCase.java`
+- Test: `application/src/test/java/com/jms/assignment1/application/problem/SubmitAnswerUseCaseTest.java`
 
 **Interfaces:**
 - Consumes: Task 3의 모든 Repository 인터페이스, Task 2의 Problem 계층
@@ -1067,18 +1067,18 @@ git commit -m "feat: add GetRandomProblemUseCase"
 - [ ] **Step 1: 테스트 작성**
 
 ```java
-// application/src/test/java/com/jms/jangsomoa/application/problem/SubmitAnswerUseCaseTest.java
-package com.jms.jangsomoa.application.problem;
+// application/src/test/java/com/jms/assignment1/application/problem/SubmitAnswerUseCaseTest.java
+package com.jms.assignment1.application.problem;
 
-import com.jms.jangsomoa.domain.answer.AnswerStatus;
-import com.jms.jangsomoa.domain.answer.AnswerType;
-import com.jms.jangsomoa.domain.exception.ProblemNotFoundException;
-import com.jms.jangsomoa.domain.exception.UserNotFoundException;
-import com.jms.jangsomoa.domain.history.UserProblemHistory;
-import com.jms.jangsomoa.domain.problem.MultipleChoiceProblem;
-import com.jms.jangsomoa.domain.problem.ShortAnswerProblem;
-import com.jms.jangsomoa.domain.repository.*;
-import com.jms.jangsomoa.domain.user.User;
+import com.jms.assignment1.domain.answer.AnswerStatus;
+import com.jms.assignment1.domain.answer.AnswerType;
+import com.jms.assignment1.domain.exception.ProblemNotFoundException;
+import com.jms.assignment1.domain.exception.UserNotFoundException;
+import com.jms.assignment1.domain.history.UserProblemHistory;
+import com.jms.assignment1.domain.problem.MultipleChoiceProblem;
+import com.jms.assignment1.domain.problem.ShortAnswerProblem;
+import com.jms.assignment1.domain.repository.*;
+import com.jms.assignment1.domain.user.User;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
@@ -1191,10 +1191,10 @@ Expected: FAIL
 - [ ] **Step 3: Command/Result + UseCase 구현**
 
 ```java
-// application/src/main/java/com/jms/jangsomoa/application/problem/SubmitAnswerCommand.java
-package com.jms.jangsomoa.application.problem;
+// application/src/main/java/com/jms/assignment1/application/problem/SubmitAnswerCommand.java
+package com.jms.assignment1.application.problem;
 
-import com.jms.jangsomoa.domain.answer.AnswerType;
+import com.jms.assignment1.domain.answer.AnswerType;
 import java.util.List;
 
 public record SubmitAnswerCommand(
@@ -1207,10 +1207,10 @@ public record SubmitAnswerCommand(
 ```
 
 ```java
-// application/src/main/java/com/jms/jangsomoa/application/problem/SubmitAnswerResult.java
-package com.jms.jangsomoa.application.problem;
+// application/src/main/java/com/jms/assignment1/application/problem/SubmitAnswerResult.java
+package com.jms.assignment1.application.problem;
 
-import com.jms.jangsomoa.domain.answer.AnswerStatus;
+import com.jms.assignment1.domain.answer.AnswerStatus;
 import java.util.List;
 
 public record SubmitAnswerResult(
@@ -1222,14 +1222,14 @@ public record SubmitAnswerResult(
 ```
 
 ```java
-// application/src/main/java/com/jms/jangsomoa/application/problem/SubmitAnswerUseCase.java
-package com.jms.jangsomoa.application.problem;
+// application/src/main/java/com/jms/assignment1/application/problem/SubmitAnswerUseCase.java
+package com.jms.assignment1.application.problem;
 
-import com.jms.jangsomoa.domain.answer.*;
-import com.jms.jangsomoa.domain.exception.*;
-import com.jms.jangsomoa.domain.history.UserProblemHistory;
-import com.jms.jangsomoa.domain.problem.*;
-import com.jms.jangsomoa.domain.repository.*;
+import com.jms.assignment1.domain.answer.*;
+import com.jms.assignment1.domain.exception.*;
+import com.jms.assignment1.domain.history.UserProblemHistory;
+import com.jms.assignment1.domain.problem.*;
+import com.jms.assignment1.domain.repository.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -1297,10 +1297,10 @@ git commit -m "feat: add SubmitAnswerUseCase"
 ### Task 6: Application — GetProblemHistoryUseCase
 
 **Files:**
-- Create: `application/src/main/java/com/jms/jangsomoa/application/problem/GetProblemHistoryCommand.java`
-- Create: `application/src/main/java/com/jms/jangsomoa/application/problem/GetProblemHistoryResult.java`
-- Create: `application/src/main/java/com/jms/jangsomoa/application/problem/GetProblemHistoryUseCase.java`
-- Test: `application/src/test/java/com/jms/jangsomoa/application/problem/GetProblemHistoryUseCaseTest.java`
+- Create: `application/src/main/java/com/jms/assignment1/application/problem/GetProblemHistoryCommand.java`
+- Create: `application/src/main/java/com/jms/assignment1/application/problem/GetProblemHistoryResult.java`
+- Create: `application/src/main/java/com/jms/assignment1/application/problem/GetProblemHistoryUseCase.java`
+- Test: `application/src/test/java/com/jms/assignment1/application/problem/GetProblemHistoryUseCaseTest.java`
 
 **Interfaces:**
 - Consumes: Task 2-3의 도메인 클래스 전부
@@ -1311,16 +1311,16 @@ git commit -m "feat: add SubmitAnswerUseCase"
 - [ ] **Step 1: 테스트 작성**
 
 ```java
-// application/src/test/java/com/jms/jangsomoa/application/problem/GetProblemHistoryUseCaseTest.java
-package com.jms.jangsomoa.application.problem;
+// application/src/test/java/com/jms/assignment1/application/problem/GetProblemHistoryUseCaseTest.java
+package com.jms.assignment1.application.problem;
 
-import com.jms.jangsomoa.domain.answer.*;
-import com.jms.jangsomoa.domain.exception.*;
-import com.jms.jangsomoa.domain.history.UserProblemHistory;
-import com.jms.jangsomoa.domain.problem.MultipleChoiceProblem;
-import com.jms.jangsomoa.domain.problem.ShortAnswerProblem;
-import com.jms.jangsomoa.domain.repository.*;
-import com.jms.jangsomoa.domain.user.User;
+import com.jms.assignment1.domain.answer.*;
+import com.jms.assignment1.domain.exception.*;
+import com.jms.assignment1.domain.history.UserProblemHistory;
+import com.jms.assignment1.domain.problem.MultipleChoiceProblem;
+import com.jms.assignment1.domain.problem.ShortAnswerProblem;
+import com.jms.assignment1.domain.repository.*;
+import com.jms.assignment1.domain.user.User;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -1405,17 +1405,17 @@ Expected: FAIL
 - [ ] **Step 3: Command/Result + UseCase 구현**
 
 ```java
-// application/src/main/java/com/jms/jangsomoa/application/problem/GetProblemHistoryCommand.java
-package com.jms.jangsomoa.application.problem;
+// application/src/main/java/com/jms/assignment1/application/problem/GetProblemHistoryCommand.java
+package com.jms.assignment1.application.problem;
 
 public record GetProblemHistoryCommand(Long userId, Long problemId) {}
 ```
 
 ```java
-// application/src/main/java/com/jms/jangsomoa/application/problem/GetProblemHistoryResult.java
-package com.jms.jangsomoa.application.problem;
+// application/src/main/java/com/jms/assignment1/application/problem/GetProblemHistoryResult.java
+package com.jms.assignment1.application.problem;
 
-import com.jms.jangsomoa.domain.answer.AnswerStatus;
+import com.jms.assignment1.domain.answer.AnswerStatus;
 import java.util.List;
 
 public record GetProblemHistoryResult(
@@ -1431,15 +1431,15 @@ public record GetProblemHistoryResult(
 ```
 
 ```java
-// application/src/main/java/com/jms/jangsomoa/application/problem/GetProblemHistoryUseCase.java
-package com.jms.jangsomoa.application.problem;
+// application/src/main/java/com/jms/assignment1/application/problem/GetProblemHistoryUseCase.java
+package com.jms.assignment1.application.problem;
 
-import com.jms.jangsomoa.domain.answer.*;
-import com.jms.jangsomoa.domain.exception.*;
-import com.jms.jangsomoa.domain.history.UserProblemHistory;
-import com.jms.jangsomoa.domain.problem.*;
-import com.jms.jangsomoa.domain.repository.*;
-import com.jms.jangsomoa.domain.service.CorrectRateCalculator;
+import com.jms.assignment1.domain.answer.*;
+import com.jms.assignment1.domain.exception.*;
+import com.jms.assignment1.domain.history.UserProblemHistory;
+import com.jms.assignment1.domain.problem.*;
+import com.jms.assignment1.domain.repository.*;
+import com.jms.assignment1.domain.service.CorrectRateCalculator;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -1507,20 +1507,20 @@ git commit -m "feat: add GetProblemHistoryUseCase"
 ### Task 7: Infrastructure — JPA 엔티티 + Spring Data 리포지토리 + 컨버터
 
 **Files:**
-- Create: `infrastructure/src/main/java/com/jms/jangsomoa/infrastructure/jpa/converter/StringListConverter.java`
-- Create: `infrastructure/src/main/java/com/jms/jangsomoa/infrastructure/jpa/converter/IntegerListConverter.java`
-- Create: `infrastructure/src/main/java/com/jms/jangsomoa/infrastructure/jpa/problem/ProblemJpaEntity.java`
-- Create: `infrastructure/src/main/java/com/jms/jangsomoa/infrastructure/jpa/problem/MultipleChoiceProblemJpaEntity.java`
-- Create: `infrastructure/src/main/java/com/jms/jangsomoa/infrastructure/jpa/problem/ShortAnswerProblemJpaEntity.java`
-- Create: `infrastructure/src/main/java/com/jms/jangsomoa/infrastructure/jpa/problem/ProblemJpaRepository.java`
-- Create: `infrastructure/src/main/java/com/jms/jangsomoa/infrastructure/jpa/history/UserProblemHistoryJpaEntity.java`
-- Create: `infrastructure/src/main/java/com/jms/jangsomoa/infrastructure/jpa/history/UserProblemHistoryJpaRepository.java`
-- Create: `infrastructure/src/main/java/com/jms/jangsomoa/infrastructure/jpa/chapter/ChapterJpaEntity.java`
-- Create: `infrastructure/src/main/java/com/jms/jangsomoa/infrastructure/jpa/chapter/UserChapterSkipJpaEntity.java`
-- Create: `infrastructure/src/main/java/com/jms/jangsomoa/infrastructure/jpa/chapter/ChapterJpaRepository.java`
-- Create: `infrastructure/src/main/java/com/jms/jangsomoa/infrastructure/jpa/chapter/UserChapterSkipJpaRepository.java`
-- Create: `infrastructure/src/main/java/com/jms/jangsomoa/infrastructure/jpa/user/UserJpaEntity.java`
-- Create: `infrastructure/src/main/java/com/jms/jangsomoa/infrastructure/jpa/user/UserJpaRepository.java`
+- Create: `infrastructure/src/main/java/com/jms/assignment1/infrastructure/jpa/converter/StringListConverter.java`
+- Create: `infrastructure/src/main/java/com/jms/assignment1/infrastructure/jpa/converter/IntegerListConverter.java`
+- Create: `infrastructure/src/main/java/com/jms/assignment1/infrastructure/jpa/problem/ProblemJpaEntity.java`
+- Create: `infrastructure/src/main/java/com/jms/assignment1/infrastructure/jpa/problem/MultipleChoiceProblemJpaEntity.java`
+- Create: `infrastructure/src/main/java/com/jms/assignment1/infrastructure/jpa/problem/ShortAnswerProblemJpaEntity.java`
+- Create: `infrastructure/src/main/java/com/jms/assignment1/infrastructure/jpa/problem/ProblemJpaRepository.java`
+- Create: `infrastructure/src/main/java/com/jms/assignment1/infrastructure/jpa/history/UserProblemHistoryJpaEntity.java`
+- Create: `infrastructure/src/main/java/com/jms/assignment1/infrastructure/jpa/history/UserProblemHistoryJpaRepository.java`
+- Create: `infrastructure/src/main/java/com/jms/assignment1/infrastructure/jpa/chapter/ChapterJpaEntity.java`
+- Create: `infrastructure/src/main/java/com/jms/assignment1/infrastructure/jpa/chapter/UserChapterSkipJpaEntity.java`
+- Create: `infrastructure/src/main/java/com/jms/assignment1/infrastructure/jpa/chapter/ChapterJpaRepository.java`
+- Create: `infrastructure/src/main/java/com/jms/assignment1/infrastructure/jpa/chapter/UserChapterSkipJpaRepository.java`
+- Create: `infrastructure/src/main/java/com/jms/assignment1/infrastructure/jpa/user/UserJpaEntity.java`
+- Create: `infrastructure/src/main/java/com/jms/assignment1/infrastructure/jpa/user/UserJpaRepository.java`
 
 **Interfaces:**
 - Produces: JPA Entity 클래스 7개, Spring Data JPA Repository 인터페이스 5개, JSON 컨버터 2개
@@ -1528,8 +1528,8 @@ git commit -m "feat: add GetProblemHistoryUseCase"
 - [ ] **Step 1: 컨버터 작성**
 
 ```java
-// infrastructure/src/main/java/com/jms/jangsomoa/infrastructure/jpa/converter/StringListConverter.java
-package com.jms.jangsomoa.infrastructure.jpa.converter;
+// infrastructure/src/main/java/com/jms/assignment1/infrastructure/jpa/converter/StringListConverter.java
+package com.jms.assignment1.infrastructure.jpa.converter;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
@@ -1559,8 +1559,8 @@ public class StringListConverter implements AttributeConverter<List<String>, Str
 ```
 
 ```java
-// infrastructure/src/main/java/com/jms/jangsomoa/infrastructure/jpa/converter/IntegerListConverter.java
-package com.jms.jangsomoa.infrastructure.jpa.converter;
+// infrastructure/src/main/java/com/jms/assignment1/infrastructure/jpa/converter/IntegerListConverter.java
+package com.jms.assignment1.infrastructure.jpa.converter;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
@@ -1592,8 +1592,8 @@ public class IntegerListConverter implements AttributeConverter<List<Integer>, S
 - [ ] **Step 2: Problem JPA 엔티티 작성**
 
 ```java
-// infrastructure/src/main/java/com/jms/jangsomoa/infrastructure/jpa/problem/ProblemJpaEntity.java
-package com.jms.jangsomoa.infrastructure.jpa.problem;
+// infrastructure/src/main/java/com/jms/assignment1/infrastructure/jpa/problem/ProblemJpaEntity.java
+package com.jms.assignment1.infrastructure.jpa.problem;
 
 import jakarta.persistence.*;
 import lombok.Getter;
@@ -1629,11 +1629,11 @@ public abstract class ProblemJpaEntity {
 ```
 
 ```java
-// infrastructure/src/main/java/com/jms/jangsomoa/infrastructure/jpa/problem/MultipleChoiceProblemJpaEntity.java
-package com.jms.jangsomoa.infrastructure.jpa.problem;
+// infrastructure/src/main/java/com/jms/assignment1/infrastructure/jpa/problem/MultipleChoiceProblemJpaEntity.java
+package com.jms.assignment1.infrastructure.jpa.problem;
 
-import com.jms.jangsomoa.infrastructure.jpa.converter.IntegerListConverter;
-import com.jms.jangsomoa.infrastructure.jpa.converter.StringListConverter;
+import com.jms.assignment1.infrastructure.jpa.converter.IntegerListConverter;
+import com.jms.assignment1.infrastructure.jpa.converter.StringListConverter;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -1664,8 +1664,8 @@ public class MultipleChoiceProblemJpaEntity extends ProblemJpaEntity {
 ```
 
 ```java
-// infrastructure/src/main/java/com/jms/jangsomoa/infrastructure/jpa/problem/ShortAnswerProblemJpaEntity.java
-package com.jms.jangsomoa.infrastructure.jpa.problem;
+// infrastructure/src/main/java/com/jms/assignment1/infrastructure/jpa/problem/ShortAnswerProblemJpaEntity.java
+package com.jms.assignment1.infrastructure.jpa.problem;
 
 import jakarta.persistence.*;
 import lombok.Getter;
@@ -1689,8 +1689,8 @@ public class ShortAnswerProblemJpaEntity extends ProblemJpaEntity {
 ```
 
 ```java
-// infrastructure/src/main/java/com/jms/jangsomoa/infrastructure/jpa/problem/ProblemJpaRepository.java
-package com.jms.jangsomoa.infrastructure.jpa.problem;
+// infrastructure/src/main/java/com/jms/assignment1/infrastructure/jpa/problem/ProblemJpaRepository.java
+package com.jms.assignment1.infrastructure.jpa.problem;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import java.util.List;
@@ -1703,10 +1703,10 @@ public interface ProblemJpaRepository extends JpaRepository<ProblemJpaEntity, Lo
 - [ ] **Step 3: 나머지 JPA 엔티티/리포지토리 작성**
 
 ```java
-// infrastructure/src/main/java/com/jms/jangsomoa/infrastructure/jpa/history/UserProblemHistoryJpaEntity.java
-package com.jms.jangsomoa.infrastructure.jpa.history;
+// infrastructure/src/main/java/com/jms/assignment1/infrastructure/jpa/history/UserProblemHistoryJpaEntity.java
+package com.jms.assignment1.infrastructure.jpa.history;
 
-import com.jms.jangsomoa.domain.answer.AnswerStatus;
+import com.jms.assignment1.domain.answer.AnswerStatus;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -1731,10 +1731,10 @@ public class UserProblemHistoryJpaEntity {
 ```
 
 ```java
-// infrastructure/src/main/java/com/jms/jangsomoa/infrastructure/jpa/history/UserProblemHistoryJpaRepository.java
-package com.jms.jangsomoa.infrastructure.jpa.history;
+// infrastructure/src/main/java/com/jms/assignment1/infrastructure/jpa/history/UserProblemHistoryJpaRepository.java
+package com.jms.assignment1.infrastructure.jpa.history;
 
-import com.jms.jangsomoa.domain.answer.AnswerStatus;
+import com.jms.assignment1.domain.answer.AnswerStatus;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -1758,8 +1758,8 @@ public interface UserProblemHistoryJpaRepository
 ```
 
 ```java
-// infrastructure/src/main/java/com/jms/jangsomoa/infrastructure/jpa/chapter/ChapterJpaEntity.java
-package com.jms.jangsomoa.infrastructure.jpa.chapter;
+// infrastructure/src/main/java/com/jms/assignment1/infrastructure/jpa/chapter/ChapterJpaEntity.java
+package com.jms.assignment1.infrastructure.jpa.chapter;
 
 import jakarta.persistence.*;
 import lombok.*;
@@ -1774,8 +1774,8 @@ public class ChapterJpaEntity {
 ```
 
 ```java
-// infrastructure/src/main/java/com/jms/jangsomoa/infrastructure/jpa/chapter/UserChapterSkipJpaEntity.java
-package com.jms.jangsomoa.infrastructure.jpa.chapter;
+// infrastructure/src/main/java/com/jms/assignment1/infrastructure/jpa/chapter/UserChapterSkipJpaEntity.java
+package com.jms.assignment1.infrastructure.jpa.chapter;
 
 import jakarta.persistence.*;
 import lombok.*;
@@ -1793,8 +1793,8 @@ public class UserChapterSkipJpaEntity {
 ```
 
 ```java
-// infrastructure/src/main/java/com/jms/jangsomoa/infrastructure/jpa/chapter/ChapterJpaRepository.java
-package com.jms.jangsomoa.infrastructure.jpa.chapter;
+// infrastructure/src/main/java/com/jms/assignment1/infrastructure/jpa/chapter/ChapterJpaRepository.java
+package com.jms.assignment1.infrastructure.jpa.chapter;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 
@@ -1802,8 +1802,8 @@ public interface ChapterJpaRepository extends JpaRepository<ChapterJpaEntity, Lo
 ```
 
 ```java
-// infrastructure/src/main/java/com/jms/jangsomoa/infrastructure/jpa/chapter/UserChapterSkipJpaRepository.java
-package com.jms.jangsomoa.infrastructure.jpa.chapter;
+// infrastructure/src/main/java/com/jms/assignment1/infrastructure/jpa/chapter/UserChapterSkipJpaRepository.java
+package com.jms.assignment1.infrastructure.jpa.chapter;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import java.util.Optional;
@@ -1814,8 +1814,8 @@ public interface UserChapterSkipJpaRepository extends JpaRepository<UserChapterS
 ```
 
 ```java
-// infrastructure/src/main/java/com/jms/jangsomoa/infrastructure/jpa/user/UserJpaEntity.java
-package com.jms.jangsomoa.infrastructure.jpa.user;
+// infrastructure/src/main/java/com/jms/assignment1/infrastructure/jpa/user/UserJpaEntity.java
+package com.jms.assignment1.infrastructure.jpa.user;
 
 import jakarta.persistence.*;
 import lombok.*;
@@ -1830,8 +1830,8 @@ public class UserJpaEntity {
 ```
 
 ```java
-// infrastructure/src/main/java/com/jms/jangsomoa/infrastructure/jpa/user/UserJpaRepository.java
-package com.jms.jangsomoa.infrastructure.jpa.user;
+// infrastructure/src/main/java/com/jms/assignment1/infrastructure/jpa/user/UserJpaRepository.java
+package com.jms.assignment1.infrastructure.jpa.user;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 
@@ -1858,12 +1858,12 @@ git commit -m "feat: add JPA entities, Spring Data repositories, and JSON conver
 ### Task 8: Infrastructure — Repository 구현체 + 통합 테스트
 
 **Files:**
-- Create: `infrastructure/src/main/java/com/jms/jangsomoa/infrastructure/jpa/problem/ProblemRepositoryImpl.java`
-- Create: `infrastructure/src/main/java/com/jms/jangsomoa/infrastructure/jpa/history/UserProblemHistoryRepositoryImpl.java`
-- Create: `infrastructure/src/main/java/com/jms/jangsomoa/infrastructure/jpa/chapter/ChapterRepositoryImpl.java`
-- Create: `infrastructure/src/main/java/com/jms/jangsomoa/infrastructure/jpa/chapter/UserChapterSkipRepositoryImpl.java`
-- Create: `infrastructure/src/main/java/com/jms/jangsomoa/infrastructure/jpa/user/UserRepositoryImpl.java`
-- Test: `infrastructure/src/test/java/com/jms/jangsomoa/infrastructure/jpa/problem/ProblemRepositoryImplTest.java`
+- Create: `infrastructure/src/main/java/com/jms/assignment1/infrastructure/jpa/problem/ProblemRepositoryImpl.java`
+- Create: `infrastructure/src/main/java/com/jms/assignment1/infrastructure/jpa/history/UserProblemHistoryRepositoryImpl.java`
+- Create: `infrastructure/src/main/java/com/jms/assignment1/infrastructure/jpa/chapter/ChapterRepositoryImpl.java`
+- Create: `infrastructure/src/main/java/com/jms/assignment1/infrastructure/jpa/chapter/UserChapterSkipRepositoryImpl.java`
+- Create: `infrastructure/src/main/java/com/jms/assignment1/infrastructure/jpa/user/UserRepositoryImpl.java`
+- Test: `infrastructure/src/test/java/com/jms/assignment1/infrastructure/jpa/problem/ProblemRepositoryImplTest.java`
 
 **Interfaces:**
 - Consumes: Task 7의 JPA 엔티티/리포지토리, Task 3의 domain 인터페이스
@@ -1872,12 +1872,12 @@ git commit -m "feat: add JPA entities, Spring Data repositories, and JSON conver
 - [ ] **Step 1: ProblemRepositoryImplTest 작성**
 
 ```java
-// infrastructure/src/test/java/com/jms/jangsomoa/infrastructure/jpa/problem/ProblemRepositoryImplTest.java
-package com.jms.jangsomoa.infrastructure.jpa.problem;
+// infrastructure/src/test/java/com/jms/assignment1/infrastructure/jpa/problem/ProblemRepositoryImplTest.java
+package com.jms.assignment1.infrastructure.jpa.problem;
 
-import com.jms.jangsomoa.domain.problem.MultipleChoiceProblem;
-import com.jms.jangsomoa.domain.problem.Problem;
-import com.jms.jangsomoa.domain.problem.ShortAnswerProblem;
+import com.jms.assignment1.domain.problem.MultipleChoiceProblem;
+import com.jms.assignment1.domain.problem.Problem;
+import com.jms.assignment1.domain.problem.ShortAnswerProblem;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
@@ -1945,11 +1945,11 @@ Expected: FAIL (ProblemRepositoryImpl 없음)
 - [ ] **Step 3: Repository 구현체 작성**
 
 ```java
-// infrastructure/src/main/java/com/jms/jangsomoa/infrastructure/jpa/problem/ProblemRepositoryImpl.java
-package com.jms.jangsomoa.infrastructure.jpa.problem;
+// infrastructure/src/main/java/com/jms/assignment1/infrastructure/jpa/problem/ProblemRepositoryImpl.java
+package com.jms.assignment1.infrastructure.jpa.problem;
 
-import com.jms.jangsomoa.domain.problem.*;
-import com.jms.jangsomoa.domain.repository.ProblemRepository;
+import com.jms.assignment1.domain.problem.*;
+import com.jms.assignment1.domain.repository.ProblemRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 import java.util.List;
@@ -1985,15 +1985,15 @@ public class ProblemRepositoryImpl implements ProblemRepository {
 ```
 
 ```java
-// infrastructure/src/main/java/com/jms/jangsomoa/infrastructure/jpa/history/UserProblemHistoryRepositoryImpl.java
-package com.jms.jangsomoa.infrastructure.jpa.history;
+// infrastructure/src/main/java/com/jms/assignment1/infrastructure/jpa/history/UserProblemHistoryRepositoryImpl.java
+package com.jms.assignment1.infrastructure.jpa.history;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.jms.jangsomoa.domain.answer.*;
-import com.jms.jangsomoa.domain.history.UserProblemHistory;
-import com.jms.jangsomoa.domain.repository.UserProblemHistoryRepository;
+import com.jms.assignment1.domain.answer.*;
+import com.jms.assignment1.domain.history.UserProblemHistory;
+import com.jms.assignment1.domain.repository.UserProblemHistoryRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 import java.util.List;
@@ -2056,11 +2056,11 @@ public class UserProblemHistoryRepositoryImpl implements UserProblemHistoryRepos
 ```
 
 ```java
-// infrastructure/src/main/java/com/jms/jangsomoa/infrastructure/jpa/chapter/ChapterRepositoryImpl.java
-package com.jms.jangsomoa.infrastructure.jpa.chapter;
+// infrastructure/src/main/java/com/jms/assignment1/infrastructure/jpa/chapter/ChapterRepositoryImpl.java
+package com.jms.assignment1.infrastructure.jpa.chapter;
 
-import com.jms.jangsomoa.domain.chapter.Chapter;
-import com.jms.jangsomoa.domain.repository.ChapterRepository;
+import com.jms.assignment1.domain.chapter.Chapter;
+import com.jms.assignment1.domain.repository.ChapterRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 import java.util.Optional;
@@ -2078,10 +2078,10 @@ public class ChapterRepositoryImpl implements ChapterRepository {
 ```
 
 ```java
-// infrastructure/src/main/java/com/jms/jangsomoa/infrastructure/jpa/chapter/UserChapterSkipRepositoryImpl.java
-package com.jms.jangsomoa.infrastructure.jpa.chapter;
+// infrastructure/src/main/java/com/jms/assignment1/infrastructure/jpa/chapter/UserChapterSkipRepositoryImpl.java
+package com.jms.assignment1.infrastructure.jpa.chapter;
 
-import com.jms.jangsomoa.domain.repository.UserChapterSkipRepository;
+import com.jms.assignment1.domain.repository.UserChapterSkipRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
@@ -2110,11 +2110,11 @@ public class UserChapterSkipRepositoryImpl implements UserChapterSkipRepository 
 ```
 
 ```java
-// infrastructure/src/main/java/com/jms/jangsomoa/infrastructure/jpa/user/UserRepositoryImpl.java
-package com.jms.jangsomoa.infrastructure.jpa.user;
+// infrastructure/src/main/java/com/jms/assignment1/infrastructure/jpa/user/UserRepositoryImpl.java
+package com.jms.assignment1.infrastructure.jpa.user;
 
-import com.jms.jangsomoa.domain.repository.UserRepository;
-import com.jms.jangsomoa.domain.user.User;
+import com.jms.assignment1.domain.repository.UserRepository;
+import com.jms.assignment1.domain.user.User;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 import java.util.Optional;
@@ -2151,16 +2151,16 @@ git commit -m "feat: add repository implementations and infrastructure integrati
 ### Task 9: API — Controller + DTO + 예외 핸들러 + 통합 테스트
 
 **Files:**
-- Create: `api/src/main/java/com/jms/jangsomoa/api/problem/ProblemController.java`
-- Create: `api/src/main/java/com/jms/jangsomoa/api/problem/dto/GetRandomProblemRequest.java`
-- Create: `api/src/main/java/com/jms/jangsomoa/api/problem/dto/GetRandomProblemResponse.java`
-- Create: `api/src/main/java/com/jms/jangsomoa/api/problem/dto/SubmitAnswerRequest.java`
-- Create: `api/src/main/java/com/jms/jangsomoa/api/problem/dto/SubmitAnswerResponse.java`
-- Create: `api/src/main/java/com/jms/jangsomoa/api/problem/dto/GetProblemHistoryResponse.java`
-- Create: `api/src/main/java/com/jms/jangsomoa/api/exception/GlobalExceptionHandler.java`
-- Create: `api/src/main/java/com/jms/jangsomoa/api/exception/ErrorResponse.java`
+- Create: `api/src/main/java/com/jms/assignment1/api/problem/ProblemController.java`
+- Create: `api/src/main/java/com/jms/assignment1/api/problem/dto/GetRandomProblemRequest.java`
+- Create: `api/src/main/java/com/jms/assignment1/api/problem/dto/GetRandomProblemResponse.java`
+- Create: `api/src/main/java/com/jms/assignment1/api/problem/dto/SubmitAnswerRequest.java`
+- Create: `api/src/main/java/com/jms/assignment1/api/problem/dto/SubmitAnswerResponse.java`
+- Create: `api/src/main/java/com/jms/assignment1/api/problem/dto/GetProblemHistoryResponse.java`
+- Create: `api/src/main/java/com/jms/assignment1/api/exception/GlobalExceptionHandler.java`
+- Create: `api/src/main/java/com/jms/assignment1/api/exception/ErrorResponse.java`
 - Create: `api/src/main/resources/data.sql`
-- Create: `api/src/test/java/com/jms/jangsomoa/api/problem/ProblemControllerTest.java`
+- Create: `api/src/test/java/com/jms/assignment1/api/problem/ProblemControllerTest.java`
 - Create: `api/src/test/resources/application-test.yml`
 - Create: `api/src/test/resources/test-data.sql`
 - Create: `api/src/test/resources/cleanup.sql`
@@ -2172,8 +2172,8 @@ git commit -m "feat: add repository implementations and infrastructure integrati
 - [ ] **Step 1: 통합 테스트 작성**
 
 ```java
-// api/src/test/java/com/jms/jangsomoa/api/problem/ProblemControllerTest.java
-package com.jms.jangsomoa.api.problem;
+// api/src/test/java/com/jms/assignment1/api/problem/ProblemControllerTest.java
+package com.jms.assignment1.api.problem;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -2372,8 +2372,8 @@ Expected: FAIL (Controller/DTO 없음)
 - [ ] **Step 4: DTO 작성**
 
 ```java
-// api/src/main/java/com/jms/jangsomoa/api/problem/dto/GetRandomProblemRequest.java
-package com.jms.jangsomoa.api.problem.dto;
+// api/src/main/java/com/jms/assignment1/api/problem/dto/GetRandomProblemRequest.java
+package com.jms.assignment1.api.problem.dto;
 
 import jakarta.validation.constraints.NotNull;
 
@@ -2381,8 +2381,8 @@ public record GetRandomProblemRequest(@NotNull Long chapterId, @NotNull Long use
 ```
 
 ```java
-// api/src/main/java/com/jms/jangsomoa/api/problem/dto/GetRandomProblemResponse.java
-package com.jms.jangsomoa.api.problem.dto;
+// api/src/main/java/com/jms/assignment1/api/problem/dto/GetRandomProblemResponse.java
+package com.jms.assignment1.api.problem.dto;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import java.util.List;
@@ -2396,8 +2396,8 @@ public record GetRandomProblemResponse(
 ```
 
 ```java
-// api/src/main/java/com/jms/jangsomoa/api/problem/dto/SubmitAnswerRequest.java
-package com.jms.jangsomoa.api.problem.dto;
+// api/src/main/java/com/jms/assignment1/api/problem/dto/SubmitAnswerRequest.java
+package com.jms.assignment1.api.problem.dto;
 
 import jakarta.validation.constraints.NotNull;
 
@@ -2409,11 +2409,11 @@ public record SubmitAnswerRequest(
 ```
 
 ```java
-// api/src/main/java/com/jms/jangsomoa/api/problem/dto/SubmitAnswerResponse.java
-package com.jms.jangsomoa.api.problem.dto;
+// api/src/main/java/com/jms/assignment1/api/problem/dto/SubmitAnswerResponse.java
+package com.jms.assignment1.api.problem.dto;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
-import com.jms.jangsomoa.domain.answer.AnswerStatus;
+import com.jms.assignment1.domain.answer.AnswerStatus;
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public record SubmitAnswerResponse(
@@ -2424,11 +2424,11 @@ public record SubmitAnswerResponse(
 ```
 
 ```java
-// api/src/main/java/com/jms/jangsomoa/api/problem/dto/GetProblemHistoryResponse.java
-package com.jms.jangsomoa.api.problem.dto;
+// api/src/main/java/com/jms/assignment1/api/problem/dto/GetProblemHistoryResponse.java
+package com.jms.assignment1.api.problem.dto;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
-import com.jms.jangsomoa.domain.answer.AnswerStatus;
+import com.jms.assignment1.domain.answer.AnswerStatus;
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public record GetProblemHistoryResponse(
@@ -2444,17 +2444,17 @@ public record GetProblemHistoryResponse(
 - [ ] **Step 5: 예외 핸들러 작성**
 
 ```java
-// api/src/main/java/com/jms/jangsomoa/api/exception/ErrorResponse.java
-package com.jms.jangsomoa.api.exception;
+// api/src/main/java/com/jms/assignment1/api/exception/ErrorResponse.java
+package com.jms.assignment1.api.exception;
 
 public record ErrorResponse(String message) {}
 ```
 
 ```java
-// api/src/main/java/com/jms/jangsomoa/api/exception/GlobalExceptionHandler.java
-package com.jms.jangsomoa.api.exception;
+// api/src/main/java/com/jms/assignment1/api/exception/GlobalExceptionHandler.java
+package com.jms.assignment1.api.exception;
 
-import com.jms.jangsomoa.domain.exception.*;
+import com.jms.assignment1.domain.exception.*;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -2485,12 +2485,12 @@ public class GlobalExceptionHandler {
 - [ ] **Step 6: Controller 작성**
 
 ```java
-// api/src/main/java/com/jms/jangsomoa/api/problem/ProblemController.java
-package com.jms.jangsomoa.api.problem;
+// api/src/main/java/com/jms/assignment1/api/problem/ProblemController.java
+package com.jms.assignment1.api.problem;
 
-import com.jms.jangsomoa.api.problem.dto.*;
-import com.jms.jangsomoa.application.problem.*;
-import com.jms.jangsomoa.domain.answer.AnswerType;
+import com.jms.assignment1.api.problem.dto.*;
+import com.jms.assignment1.application.problem.*;
+import com.jms.assignment1.domain.answer.AnswerType;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;

@@ -1,4 +1,4 @@
-# jangsomoa 백엔드 과제 설계 문서
+# assignment1 백엔드 과제 설계 문서
 
 ## 개요
 
@@ -12,7 +12,7 @@
 ## 1. 아키텍처: DDD 헥사고날 멀티 모듈
 
 ```
-jangsomoa/
+assignment1/
 ├── domain/          ← 순수 Java. Spring/JPA 의존 없음. 핵심 비즈니스 규칙
 ├── application/     ← 유스케이스 조율. domain 호출
 ├── infrastructure/  ← JPA 구현체, DB 설정. domain 인터페이스 구현
