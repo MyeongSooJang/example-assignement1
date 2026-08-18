@@ -1,12 +1,9 @@
 package com.jms.assignment1.problem;
 
 import com.jms.assignment1.answer.AnswerStatus;
-import com.jms.assignment1.answer.MultipleChoiceAnswer;
 import com.jms.assignment1.answer.ShortAnswer;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-
-import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -118,9 +115,4 @@ class ShortAnswerProblemTest {
                 .isEqualTo(AnswerStatus.WRONG);
     }
 
-    @Test
-    void 객관식_답안을_넘기면_예외() {
-        assertThatThrownBy(() -> problem.evaluate(new MultipleChoiceAnswer(List.of(1))))
-                .isInstanceOf(IllegalArgumentException.class);
-    }
 }

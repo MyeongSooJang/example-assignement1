@@ -1,7 +1,5 @@
 package com.jms.assignment1.problem;
 
-import com.jms.assignment1.answer.Answer;
-import com.jms.assignment1.answer.AnswerStatus;
 import lombok.Getter;
 
 @Getter
@@ -31,5 +29,4 @@ public abstract class Problem {
         this.solution = solution;
     }
 
-    public abstract AnswerStatus evaluate(Answer answer);
 }
