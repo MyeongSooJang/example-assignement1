@@ -42,4 +42,9 @@ public class MultipleChoiceProblem extends Problem {
         }
         return AnswerStatus.PARTIAL;
     }
+
+    public boolean isMultipleAnswer() {
+        return correctAnswerSet.size() > 1;
+    }
+
 }

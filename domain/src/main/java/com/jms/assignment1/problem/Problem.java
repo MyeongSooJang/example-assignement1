@@ -28,5 +28,4 @@ public abstract class Problem {
         this.content = content;
         this.solution = solution;
     }
-
 }
