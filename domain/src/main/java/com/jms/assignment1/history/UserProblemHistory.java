@@ -11,9 +11,9 @@ public class UserProblemHistory {
     private final Long userId;
     private final Long problemId;
     private final AnswerStatus answerStatus;
-    private final Answer userAnswer;
+    private final String userAnswer;
 
-    private UserProblemHistory(Long id, Long userId, Long problemId, AnswerStatus answerStatus, Answer userAnswer) {
+    private UserProblemHistory(Long id, Long userId, Long problemId, AnswerStatus answerStatus, String userAnswer) {
         if (userId == null) {
             throw new IllegalArgumentException("userId는 비어있을 수 없습니다");
         }
@@ -23,7 +23,7 @@ public class UserProblemHistory {
         if (answerStatus == null) {
             throw new IllegalArgumentException("answerStatus는 비어있을 수 없습니다");
         }
-        if (userAnswer == null) {
+        if (userAnswer == null || userAnswer.isBlank()) {
             throw new IllegalArgumentException("userAnswer는 비어있을 수 없습니다");
         }
         this.id = id;
@@ -34,6 +34,6 @@ public class UserProblemHistory {
     }
 
     public static UserProblemHistory create(Long userId, Long problemId, AnswerStatus answerStatus, Answer userAnswer) {
-        return new UserProblemHistory(null, userId, problemId, answerStatus, userAnswer);
+        return new UserProblemHistory(null, userId, problemId, answerStatus, userAnswer.toText());
     }
 }

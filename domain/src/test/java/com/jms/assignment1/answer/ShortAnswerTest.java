@@ -2,6 +2,7 @@ package com.jms.assignment1.answer;
 
 import org.junit.jupiter.api.Test;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 class ShortAnswerTest {
@@ -16,5 +17,11 @@ class ShortAnswerTest {
     void text가_blank이면_예외() {
         assertThatThrownBy(() -> new ShortAnswer("   "))
                 .isInstanceOf(IllegalArgumentException.class);
+    }
+
+    @Test
+    void toText_입력한_텍스트를_그대로_반환() {
+        assertThat(new ShortAnswer("서울").toText())
+                .isEqualTo("서울");
     }
 }

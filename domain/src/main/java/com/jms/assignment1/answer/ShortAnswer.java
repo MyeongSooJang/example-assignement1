@@ -13,4 +13,9 @@ public class ShortAnswer implements Answer {
         }
         this.text = text;
     }
+
+    @Override
+    public String toText() {
+        return text;
+    }
 }
