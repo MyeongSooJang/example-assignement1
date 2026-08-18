@@ -2,6 +2,7 @@ package com.jms.assignment1.problem;
 
 import com.jms.assignment1.answer.AnswerStatus;
 import com.jms.assignment1.answer.MultipleChoiceAnswer;
+import com.jms.assignment1.answer.ShortAnswer;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -113,5 +114,11 @@ class MultipleChoiceProblemTest {
     void 중복_선택해도_정답_판정에_영향없음() {
         assertThat(problem.evaluate(new MultipleChoiceAnswer(List.of(1, 1))))
                 .isEqualTo(AnswerStatus.PARTIAL);
+    }
+
+    @Test
+    void 주관식_답안을_넘기면_예외() {
+        assertThatThrownBy(() -> problem.evaluate(new ShortAnswer("답")))
+                .isInstanceOf(IllegalArgumentException.class);
     }
 }

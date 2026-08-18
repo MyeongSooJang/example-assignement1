@@ -1,12 +1,14 @@
 package com.jms.assignment1.problem;
 
+import com.jms.assignment1.answer.Answer;
 import com.jms.assignment1.answer.AnswerStatus;
 import com.jms.assignment1.answer.MultipleChoiceAnswer;
+
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-public class MultipleChoiceProblem extends Problem<MultipleChoiceAnswer> {
+public class MultipleChoiceProblem extends Problem {
 
     private final List<String> choices;
     private final List<Integer> correctAnswers;
@@ -29,8 +31,11 @@ public class MultipleChoiceProblem extends Problem<MultipleChoiceAnswer> {
     }
 
     @Override
-    public AnswerStatus evaluate(MultipleChoiceAnswer answer) {
-        Set<Integer> userAnswers = new HashSet<>(answer.getSelectedChoices());
+    public AnswerStatus evaluate(Answer answer) {
+        if (!(answer instanceof MultipleChoiceAnswer mca)) {
+            throw new IllegalArgumentException("객관식 답안이 필요합니다");
+        }
+        Set<Integer> userAnswers = new HashSet<>(mca.getSelectedChoices());
         Set<Integer> correctAnswerSet = new HashSet<>(correctAnswers);
         if (userAnswers.equals(correctAnswerSet)) {
             return AnswerStatus.CORRECT;

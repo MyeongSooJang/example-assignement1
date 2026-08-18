@@ -2,8 +2,10 @@ package com.jms.assignment1.problem;
 
 import com.jms.assignment1.answer.Answer;
 import com.jms.assignment1.answer.AnswerStatus;
+import lombok.Getter;
 
-public abstract class Problem<A extends Answer> {
+@Getter
+public abstract class Problem {
 
     private final Long id;
     private final Long chapterId;
@@ -29,5 +31,5 @@ public abstract class Problem<A extends Answer> {
         this.solution = solution;
     }
 
-    public abstract AnswerStatus evaluate(A answer);
+    public abstract AnswerStatus evaluate(Answer answer);
 }
