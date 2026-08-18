@@ -1,5 +1,7 @@
 # assignment1 백엔드 과제 설계 문서
 
+> 이 문서는 대화를 통해 결정된 설계를 반영한다. plan 파일보다 이 문서가 우선한다.
+
 ## 개요
 
 학습 플랫폼의 '단원별 문제 풀이' 및 '풀이 이력 조회' API 구축.
@@ -33,23 +35,25 @@ assignment1/
 
 ```
 Problem (추상)
-├── MultipleChoiceProblem   ← choices: List<String> (5지선다)
-└── ShortAnswerProblem
+├── MultipleChoiceProblem   ← choices: List<String>, correctAnswerSet: Set<Integer>
+└── ShortAnswerProblem      ← correctAnswer: String
 ```
 
-- `Problem`에는 JPA 어노테이션이 없다. DB 매핑은 `infrastructure`의 JPA Entity가 담당한다.
-- 정답 판정 메서드 `evaluate(UserAnswer): AnswerStatus` 를 각 구현체가 오버라이드한다.
+**Problem의 책임:**
+- `evaluate(MultipleChoiceAnswer)` / `evaluate(ShortAnswer)` → AnswerStatus 반환 (오버로딩)
+- `isMultipleAnswer()` → 복수정답 여부 (MultipleChoiceProblem)
 
-### 사용자 답안 (UserAnswer)
+### 답안 (Answer)
 
 ```
-UserAnswer (추상)
-├── MultipleChoiceAnswer    ← selectedChoices: List<Integer>
-└── ShortAnswer             ← text: String
+Answer (인터페이스)
+├── toText(): String         ← 저장/표시용 문자열 변환
+├── MultipleChoiceAnswer     ← selectedChoices: List<Integer>, toText() → "1,3"
+└── ShortAnswer              ← text: String, toText() → "파리"
 ```
 
-- `Problem`과 `UserAnswer`가 타입 대칭을 이룬다.
-- `MultipleChoiceProblem.evaluate(MultipleChoiceAnswer)`, `ShortAnswerProblem.evaluate(ShortAnswer)` 형태로 타입 안전하게 판정한다.
+- Answer 객체는 채점 시점에만 사용된다
+- 저장 시점에 `toText()`로 변환해서 String으로 보관한다
 
 ### 정답 상태 (AnswerStatus)
 
@@ -57,7 +61,7 @@ UserAnswer (추상)
 |---|---|
 | `CORRECT` | 제출한 답이 정답과 완전히 일치 |
 | `PARTIAL` | 정답을 1개 이상 포함하지만 오답도 포함 |
-| `INCORRECT` | 정답을 하나도 포함하지 않음 |
+| `WRONG` | 정답을 하나도 포함하지 않음 |
 
 부분 정답 예시: 정답이 `[1, 2]`일 때 `[1, 3]` 제출 → `PARTIAL`
 
@@ -65,20 +69,21 @@ UserAnswer (추상)
 
 ```
 UserProblemHistory
-├── problem: Problem
-├── user: User
-├── userAnswer: UserAnswer
-└── answerStatus: AnswerStatus
+├── userId: Long
+├── problemId: Long
+├── answerStatus: AnswerStatus
+└── userAnswer: String       ← Answer.toText()로 변환해서 저장
 ```
+
+- `userAnswer`는 Answer 객체가 아닌 String으로 저장한다
+- 이력은 이미 일어난 사실의 기록이므로 도메인 객체 참조를 갖지 않는다
 
 ### 건너뛰기 이력 (UserChapterSkip)
 
-문제를 건너뛰면 풀이 이력이 생기지 않으므로 별도 엔티티로 관리한다.
-
 ```
 UserChapterSkip
-├── user: User
-├── chapter: Chapter
+├── userId: Long
+├── chapterId: Long
 └── skippedProblemId: Long   ← 직전 건너뛴 문제 ID
 ```
 
@@ -92,7 +97,21 @@ UserChapterSkip
 
 ---
 
-## 3. 핵심 비즈니스 규칙
+## 3. Domain Service
+
+```
+domain/service/
+└── CorrectRateCalculator    ← 정답률 계산 Domain Service
+```
+
+**CorrectRateCalculator의 책임:**
+- 30명 이상일 때만 정답률 반환, 미만이면 `Optional.empty()`
+- 소수점 첫째 자리에서 반올림 (예: 66.7% → 67%)
+- 부분 정답(PARTIAL)은 오답으로 간주
+
+---
+
+## 4. 핵심 비즈니스 규칙
 
 ### 랜덤 문제 조회 규칙
 
@@ -104,12 +123,12 @@ UserChapterSkip
 
 - 해당 문제를 푼 사용자가 30명 이상일 때만 정답률 반환
 - 30명 미만이면 `null` 반환
-- 부분 정답(`PARTIAL`)은 정답률 계산에서 오답으로 간주
+- 부분 정답(`PARTIAL`)은 오답으로 간주
 - 소수점 첫째 자리에서 반올림 (예: 66.7% → 67%)
 
 ---
 
-## 4. 유스케이스 (application 레이어)
+## 5. 유스케이스 (application 레이어)
 
 ### GetRandomProblemUseCase
 
@@ -118,7 +137,7 @@ UserChapterSkip
 2. userId로 해당 단원에서 이미 푼 문제 ID 목록 조회
 3. 직전 건너뛴 문제 ID 조회
 4. 풀지 않은 문제 중 건너뛴 문제 제외 후 랜덤 1개 선택
-5. 해당 문제의 정답률 계산
+5. CorrectRateCalculator로 정답률 계산
 6. 결과 반환
 ```
 
@@ -126,9 +145,9 @@ UserChapterSkip
 
 ```
 1. problemId로 Problem 조회
-2. 요청 타입에 맞게 UserAnswer 생성
-3. problem.evaluate(userAnswer) 호출 → AnswerStatus
-4. UserProblemHistory 저장
+2. 요청 타입에 맞게 Answer 생성
+3. problem.evaluate(answer) 호출 → AnswerStatus
+4. UserProblemHistory.create(userId, problemId, answerStatus, answer) 저장
 5. 정답 여부 + 해설 반환
 ```
 
@@ -142,7 +161,7 @@ UserChapterSkip
 
 ---
 
-## 5. API 설계
+## 6. API 설계
 
 ### 랜덤 문제 조회
 
@@ -150,17 +169,14 @@ UserChapterSkip
 POST /api/problems/random
 
 Request:
-{
-  "chapterId": 1,
-  "userId": 1
-}
+{ "chapterId": 1, "userId": 1 }
 
 Response:
 {
   "problemId": 1,
   "content": "문제 설명",
-  "choices": ["지문1", "지문2", "지문3", "지문4", "지문5"],  // 객관식만
-  "answerCorrectRate": 67  // 30명 미만이면 null
+  "choices": ["지문1", "지문2", "지문3", "지문4", "지문5"],
+  "answerCorrectRate": 67   // 30명 미만이면 null
 }
 ```
 
@@ -170,25 +186,13 @@ Response:
 POST /api/problems/{problemId}/submit
 
 Request (객관식):
-{
-  "userId": 1,
-  "answerType": "MULTIPLE_CHOICE",
-  "userAnswer": [1, 3]
-}
+{ "userId": 1, "answerType": "MULTIPLE_CHOICE", "userAnswer": [1, 3] }
 
 Request (주관식):
-{
-  "userId": 1,
-  "answerType": "SHORT_ANSWER",
-  "userAnswer": "서울"
-}
+{ "userId": 1, "answerType": "SHORT_ANSWER", "userAnswer": "서울" }
 
 Response:
-{
-  "answerStatus": "PARTIAL",
-  "explanation": "문제 해설...",
-  "correctAnswers": [1, 2]
-}
+{ "answerStatus": "PARTIAL", "explanation": "문제 해설...", "correctAnswers": [1, 2] }
 ```
 
 ### 풀었던 문제 상세 조회
@@ -202,7 +206,7 @@ Response:
   "answerStatus": "CORRECT",
   "explanation": "문제 해설...",
   "problemAnswers": [1, 2],
-  "userAnswers": [1, 2],
+  "userAnswers": "1,2",
   "answerCorrectRate": 67
 }
 ```
@@ -218,46 +222,23 @@ Response:
 
 ---
 
-## 6. infrastructure 설계
+## 7. infrastructure 설계
 
 ### JPA 상속 전략
 
 - `Problem`: **JOINED** 전략
   - `problem` 공통 테이블 + `multiple_choice_problem` / `short_answer_problem` 테이블 분리
-  - 객관식/주관식 컬럼 차이가 명확해 정규화된 구조가 적합
 
 ### Repository 패턴
 
 ```
-domain/ProblemRepository          ← 인터페이스 (Spring 모름)
-infrastructure/ProblemJpaRepository    ← Spring Data JPA
-infrastructure/ProblemRepositoryImpl   ← domain 인터페이스 구현, JpaEntity ↔ Domain 변환
+domain/repository/ProblemRepository          ← 인터페이스 (Spring 모름)
+infrastructure/ProblemJpaRepository          ← Spring Data JPA
+infrastructure/ProblemRepositoryImpl         ← domain 인터페이스 구현, JpaEntity ↔ Domain 변환
 ```
 
-### UserAnswer 저장
+### UserProblemHistory 저장
 
-`UserProblemHistory` 테이블에 `answer_type` + `answer_value(JSON)` 컬럼으로 저장.
-- 객관식: `answer_type = "MULTIPLE_CHOICE"`, `answer_value = "[1,3]"`
-- 주관식: `answer_type = "SHORT_ANSWER"`, `answer_value = "서울"`
-
----
-
-## 7. 테스트 전략
-
-### domain 단위 테스트 (Spring 없음)
-
-- `AnswerEvaluatorTest`: 정답/부분정답/오답 각 케이스
-- `CorrectRateCalculatorTest`: 30명 이상/미만 케이스
-
-### application 단위 테스트 (Repository Mock)
-
-- `GetRandomProblemUseCaseTest`: 정상 조회, 건너뛴 문제 제외, 풀 문제 없음 예외
-- `SubmitAnswerUseCaseTest`: 저장 확인, 각 정답 상태 반환값
-
-### infrastructure 통합 테스트 (@DataJpaTest + H2)
-
-- `ProblemRepositoryImplTest`: 풀지 않은 문제 조회, domain 객체 변환
-
-### api 통합 테스트 (@SpringBootTest + MockMvc)
-
-- `ProblemControllerTest`: 정상 응답, 예외 응답(204, 400, 404)
+`user_problem_history` 테이블에 `answer_type` + `user_answer(String)` 컬럼으로 저장.
+- 객관식: `answer_type = "MULTIPLE_CHOICE"`, `user_answer = "1,3"`
+- 주관식: `answer_type = "SHORT_ANSWER"`, `user_answer = "서울"`
