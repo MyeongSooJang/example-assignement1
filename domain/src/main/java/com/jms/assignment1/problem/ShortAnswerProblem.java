@@ -1,6 +1,9 @@
 package com.jms.assignment1.problem;
 
-public class ShortAnswerProblem extends Problem {
+import com.jms.assignment1.answer.AnswerStatus;
+import com.jms.assignment1.answer.ShortAnswer;
+
+public class ShortAnswerProblem extends Problem<ShortAnswer> {
 
     private final String correctAnswer;
 
@@ -8,12 +11,19 @@ public class ShortAnswerProblem extends Problem {
                               Long chapterId,
                               String content,
                               String solution,
-                              String correctAnswer)
-    {
+                              String correctAnswer) {
         super(id, chapterId, content, solution);
-        if (correctAnswer == null || correctAnswer.isBlank()){
+        if (correctAnswer == null || correctAnswer.isBlank()) {
             throw new IllegalArgumentException("correctAnswer는 blank일 수 없습니다");
         }
         this.correctAnswer = correctAnswer;
+    }
+
+    @Override
+    public AnswerStatus evaluate(ShortAnswer answer) {
+        if (answer.getText().strip().equals(correctAnswer.strip())) {
+            return AnswerStatus.CORRECT;
+        }
+        return AnswerStatus.WRONG;
     }
 }

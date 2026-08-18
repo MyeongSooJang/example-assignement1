@@ -1,6 +1,9 @@
 package com.jms.assignment1.problem;
 
-public abstract class Problem {
+import com.jms.assignment1.answer.Answer;
+import com.jms.assignment1.answer.AnswerStatus;
+
+public abstract class Problem<A extends Answer> {
 
     private final Long id;
     private final Long chapterId;
@@ -25,4 +28,6 @@ public abstract class Problem {
         this.content = content;
         this.solution = solution;
     }
+
+    public abstract AnswerStatus evaluate(A answer);
 }

@@ -1,7 +1,9 @@
 package com.jms.assignment1.answer;
 
 import java.util.List;
+import lombok.Getter;
 
+@Getter
 public class MultipleChoiceAnswer implements Answer {
 
     private final List<Integer> selectedChoices;

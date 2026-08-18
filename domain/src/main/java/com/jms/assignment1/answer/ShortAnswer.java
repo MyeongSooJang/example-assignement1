@@ -1,5 +1,8 @@
 package com.jms.assignment1.answer;
 
+import lombok.Getter;
+
+@Getter
 public class ShortAnswer implements Answer {
 
     private final String text;
