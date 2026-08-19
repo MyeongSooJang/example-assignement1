@@ -3,12 +3,15 @@ package com.jms.assignment1.problem;
 import com.jms.assignment1.answer.AnswerStatus;
 import com.jms.assignment1.answer.MultipleChoiceAnswer;
 
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import lombok.Getter;
 
 public class MultipleChoiceProblem extends Problem {
 
+    @Getter
     private final List<String> choices;
     private final Set<Integer> correctAnswerSet;
 
@@ -47,4 +50,7 @@ public class MultipleChoiceProblem extends Problem {
         return correctAnswerSet.size() > 1;
     }
 
+    public List<Integer> getCorrectAnswers() {
+        return new ArrayList<>(correctAnswerSet);
+    }
 }

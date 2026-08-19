@@ -2,9 +2,11 @@ package com.jms.assignment1.problem;
 
 import com.jms.assignment1.answer.AnswerStatus;
 import com.jms.assignment1.answer.ShortAnswer;
+import lombok.Getter;
 
 public class ShortAnswerProblem extends Problem {
 
+    @Getter
     private final String correctAnswer;
 
     public ShortAnswerProblem(Long id,
