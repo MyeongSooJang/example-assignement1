@@ -36,4 +36,8 @@ public class UserProblemHistory {
     public static UserProblemHistory create(Long userId, Long problemId, AnswerStatus answerStatus, Answer userAnswer) {
         return new UserProblemHistory(null, userId, problemId, answerStatus, userAnswer.toText());
     }
+
+    public UserProblemHistory update(AnswerStatus updateStatus, Answer userAnswer) {
+        return new UserProblemHistory(this.id, this.userId, this.problemId, updateStatus, userAnswer.toText());
+    }
 }
