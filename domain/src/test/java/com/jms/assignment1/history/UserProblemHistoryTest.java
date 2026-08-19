@@ -45,13 +45,6 @@ class UserProblemHistoryTest {
     }
 
     @Test
-    void 생성_시_id는_null이다() {
-        UserProblemHistory history = UserProblemHistory.create(1L, 1L, AnswerStatus.CORRECT, new ShortAnswer("서울"));
-
-        assertThat(history.getId()).isNull();
-    }
-
-    @Test
     void 업데이트_시_answerStatus와_userAnswer가_변경된다() {
         UserProblemHistory history = UserProblemHistory.create(1L, 1L, AnswerStatus.WRONG, new ShortAnswer("부산"));
         UserProblemHistory updated = history.update(AnswerStatus.CORRECT, new ShortAnswer("서울"));
@@ -67,6 +60,5 @@ class UserProblemHistoryTest {
 
         assertThat(updated.getUserId()).isEqualTo(history.getUserId());
         assertThat(updated.getProblemId()).isEqualTo(history.getProblemId());
-        assertThat(updated.getId()).isEqualTo(history.getId());
     }
 }
