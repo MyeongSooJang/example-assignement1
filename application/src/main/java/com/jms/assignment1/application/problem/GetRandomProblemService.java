@@ -3,6 +3,7 @@ package com.jms.assignment1.application.problem;
 import com.jms.assignment1.answer.AnswerStatus;
 import com.jms.assignment1.application.common.ChapterValidator;
 import com.jms.assignment1.application.common.UserValidator;
+import com.jms.assignment1.exception.NoAvailableProblemException;
 import com.jms.assignment1.problem.Problem;
 import com.jms.assignment1.repository.ProblemRepository;
 import com.jms.assignment1.repository.UserChapterSkipRepository;
@@ -13,7 +14,6 @@ import org.springframework.stereotype.Service;
 
 import java.util.HashSet;
 import java.util.List;
-import java.util.NoSuchElementException;
 import java.util.Optional;
 import java.util.Set;
 
@@ -66,7 +66,7 @@ public class GetRandomProblemService implements GetRandomProblemUseCase {
                                                             .toList();
 
         if (availableProblems.isEmpty()) {
-            throw new NoSuchElementException("풀 수 있는 문제가 없습니다.");
+            throw new NoAvailableProblemException(chapterId);
         }
 
         return availableProblems;
@@ -78,7 +78,9 @@ public class GetRandomProblemService implements GetRandomProblemUseCase {
 
     private Integer calculateAnswerCorrectRate(Problem selectedProblem) {
         List<AnswerStatus> answerStatuses = userProblemHistoryRepository.findAnswerStatusesByProblemId(selectedProblem.getId());
-        long correctCount = answerStatuses.stream().filter(status -> status == AnswerStatus.CORRECT).count();
+        long correctCount = answerStatuses.stream()
+                                          .filter(status -> status == AnswerStatus.CORRECT)
+                                          .count();
         return CorrectRateCalculator.calculate(answerStatuses.size(), correctCount);
     }
 }
