@@ -26,15 +26,21 @@ public class GetProblemHistoryService implements GetProblemHistoryUseCase {
     public ProblemHistoryResult execute(Long userId, Long problemId) {
         userValidator.validate(userId);
 
-        Problem problem = problemRepository.findById(problemId)
-                                           .orElseThrow(() -> new ProblemNotFoundException(problemId));
-
-        UserProblemHistory userProblemHistory = userProblemHistoryRepository.findByUserIdAndProblemId(userId, problemId)
-                                                                             .orElseThrow(() -> new ProblemHistoryNotFoundException(userId, problemId));
-
+        Problem problem = findProblem(problemId);
+        UserProblemHistory userProblemHistory = findHistory(userId, problemId);
         Integer answerCorrectRate = calculateAnswerCorrectRate(problemId);
 
         return new ProblemHistoryResult(problem, userProblemHistory, answerCorrectRate);
+    }
+
+    private Problem findProblem(Long problemId) {
+        return problemRepository.findById(problemId)
+                                .orElseThrow(() -> new ProblemNotFoundException(problemId));
+    }
+
+    private UserProblemHistory findHistory(Long userId, Long problemId) {
+        return userProblemHistoryRepository.findByUserIdAndProblemId(userId, problemId)
+                                           .orElseThrow(() -> new ProblemHistoryNotFoundException(userId, problemId));
     }
 
     private Integer calculateAnswerCorrectRate(Long problemId) {
