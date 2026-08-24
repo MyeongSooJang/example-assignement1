@@ -37,6 +37,10 @@ public class UserProblemHistory {
         return new UserProblemHistory(null, userId, problemId, answerStatus, userAnswer.toText());
     }
 
+    public static UserProblemHistory reconstruct(Long id, Long userId, Long problemId, AnswerStatus answerStatus, String userAnswer) {
+        return new UserProblemHistory(id, userId, problemId, answerStatus, userAnswer);
+    }
+
     public UserProblemHistory update(AnswerStatus updateStatus, Answer userAnswer) {
         return new UserProblemHistory(this.id, this.userId, this.problemId, updateStatus, userAnswer.toText());
     }

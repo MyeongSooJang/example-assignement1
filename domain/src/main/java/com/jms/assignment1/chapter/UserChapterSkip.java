@@ -30,6 +30,10 @@ public class UserChapterSkip {
         return new UserChapterSkip(null, userId, chapterId, skippedProblemId);
     }
 
+    public static UserChapterSkip reconstruct(Long id, Long userId, Long chapterId, Long skippedProblemId) {
+        return new UserChapterSkip(id, userId, chapterId, skippedProblemId);
+    }
+
     public UserChapterSkip update(Long skippedProblemId) {
         return new UserChapterSkip(this.id, this.userId, this.chapterId, skippedProblemId);
     }
