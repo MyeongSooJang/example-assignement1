@@ -1,6 +1,10 @@
 package com.jms.assignment1.problem;
 
+import com.jms.assignment1.answer.Answer;
+import com.jms.assignment1.answer.AnswerStatus;
 import lombok.Getter;
+
+import java.util.List;
 
 @Getter
 public abstract class Problem {
@@ -28,4 +32,8 @@ public abstract class Problem {
         this.content = content;
         this.solution = solution;
     }
+
+    public abstract Answer createAnswer(List<Integer> selectedChoices, String text);
+
+    public abstract AnswerStatus evaluate(Answer answer);
 }

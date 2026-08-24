@@ -2,14 +2,10 @@ package com.jms.assignment1.application.problem;
 
 import com.jms.assignment1.answer.Answer;
 import com.jms.assignment1.answer.AnswerStatus;
-import com.jms.assignment1.answer.MultipleChoiceAnswer;
-import com.jms.assignment1.answer.ShortAnswer;
 import com.jms.assignment1.application.common.UserValidator;
 import com.jms.assignment1.exception.ProblemNotFoundException;
 import com.jms.assignment1.history.UserProblemHistory;
-import com.jms.assignment1.problem.MultipleChoiceProblem;
 import com.jms.assignment1.problem.Problem;
-import com.jms.assignment1.problem.ShortAnswerProblem;
 import com.jms.assignment1.repository.ProblemRepository;
 import com.jms.assignment1.repository.UserProblemHistoryRepository;
 import lombok.RequiredArgsConstructor;
@@ -32,7 +28,7 @@ public class SubmitAnswerService implements SubmitAnswerUseCase {
         Problem problem = findProblem(problemId);
         AnswerEvaluation answerEvaluation = evaluate(problem, selectedChoices, text);
 
-        UserProblemHistory history = resolveHistory(userId, problemId, answerEvaluation.getAnswerStatus(), answerEvaluation.getAnswer());
+        UserProblemHistory history = upsertHistory(userId, problemId, answerEvaluation.getAnswerStatus(), answerEvaluation.getAnswer());
         userProblemHistoryRepository.saveOrUpdate(history);
 
         return new SubmitAnswerResult(answerEvaluation.getAnswerStatus(), problem.getSolution());
@@ -44,18 +40,12 @@ public class SubmitAnswerService implements SubmitAnswerUseCase {
     }
 
     private AnswerEvaluation evaluate(Problem problem, List<Integer> selectedChoices, String text) {
-        if (problem instanceof MultipleChoiceProblem multipleChoiceProblem) {
-            MultipleChoiceAnswer multipleChoiceAnswer = new MultipleChoiceAnswer(selectedChoices);
-            return new AnswerEvaluation(multipleChoiceProblem.evaluate(multipleChoiceAnswer), multipleChoiceAnswer);
-        }
-        if (problem instanceof ShortAnswerProblem shortAnswerProblem) {
-            ShortAnswer shortAnswer = new ShortAnswer(text);
-            return new AnswerEvaluation(shortAnswerProblem.evaluate(shortAnswer), shortAnswer);
-        }
-        throw new IllegalStateException("알 수 없는 문제 타입입니다: " + problem.getClass());
+        Answer answer = problem.createAnswer(selectedChoices, text);
+        AnswerStatus answerStatus = problem.evaluate(answer);
+        return new AnswerEvaluation(answerStatus, answer);
     }
 
-    private UserProblemHistory resolveHistory(Long userId, Long problemId, AnswerStatus answerStatus, Answer answer) {
+    private UserProblemHistory upsertHistory(Long userId, Long problemId, AnswerStatus answerStatus, Answer answer) {
         return userProblemHistoryRepository.findByUserIdAndProblemId(userId, problemId)
                                             .map(found -> found.update(answerStatus, answer))
                                             .orElseGet(() -> UserProblemHistory.create(userId, problemId, answerStatus, answer));

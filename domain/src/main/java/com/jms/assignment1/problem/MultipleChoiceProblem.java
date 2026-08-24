@@ -1,5 +1,6 @@
 package com.jms.assignment1.problem;
 
+import com.jms.assignment1.answer.Answer;
 import com.jms.assignment1.answer.AnswerStatus;
 import com.jms.assignment1.answer.MultipleChoiceAnswer;
 
@@ -30,6 +31,16 @@ public class MultipleChoiceProblem extends Problem {
         }
         this.choices = choices;
         this.correctAnswerSet = new HashSet<>(correctAnswers);
+    }
+
+    @Override
+    public Answer createAnswer(List<Integer> selectedChoices, String text) {
+        return new MultipleChoiceAnswer(selectedChoices);
+    }
+
+    @Override
+    public AnswerStatus evaluate(Answer answer) {
+        return evaluate((MultipleChoiceAnswer) answer);
     }
 
     public AnswerStatus evaluate(MultipleChoiceAnswer multipleChoiceAnswer) {
