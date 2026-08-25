@@ -27,23 +27,21 @@ public class ProblemController {
     private final SubmitAnswerUseCase submitAnswerUseCase;
     private final GetProblemHistoryUseCase getProblemHistoryUseCase;
 
-    @PostMapping("/random")
-    public GetRandomProblemResponse getRandomProblem(@Valid @RequestBody GetRandomProblemRequest request) {
+    @GetMapping("/random")
+    public GetRandomProblemResponse getRandomProblem(@Valid GetRandomProblemRequest request) {
         return GetRandomProblemResponse.from(getRandomProblemUseCase.execute(request.userId(), request.chapterId()));
     }
 
     @PostMapping("/{problemId}/submit")
-    public SubmitAnswerResponse submitAnswer(
-            @PathVariable Long problemId,
-            @Valid @RequestBody SubmitAnswerRequest request) {
+    public SubmitAnswerResponse submitAnswer(@PathVariable Long problemId,
+                                             @Valid @RequestBody SubmitAnswerRequest request) {
         return SubmitAnswerResponse.from(submitAnswerUseCase.execute(
                 request.userId(), problemId, request.selectedChoices(), request.text()));
     }
 
     @GetMapping("/{problemId}/history")
-    public GetProblemHistoryResponse getProblemHistory(
-            @PathVariable Long problemId,
-            @RequestParam Long userId) {
+    public GetProblemHistoryResponse getProblemHistory(@PathVariable Long problemId,
+                                                       @RequestParam Long userId) {
         return GetProblemHistoryResponse.from(getProblemHistoryUseCase.execute(userId, problemId));
     }
 }
