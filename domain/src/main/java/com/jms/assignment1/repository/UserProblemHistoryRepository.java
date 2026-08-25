@@ -1,6 +1,5 @@
 package com.jms.assignment1.repository;
 
-import com.jms.assignment1.answer.AnswerStatus;
 import com.jms.assignment1.history.UserProblemHistory;
 
 import java.util.List;
@@ -14,5 +13,7 @@ public interface UserProblemHistoryRepository {
 
     List<Long> findSolvedProblemIdsByUserIdAndChapterId(Long userId, Long chapterId);
 
-    List<AnswerStatus> findAnswerStatusesByProblemId(Long problemId);
+    long countByProblemId(Long problemId);
+
+    long countCorrectByProblemId(Long problemId);
 }

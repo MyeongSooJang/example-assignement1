@@ -22,10 +22,13 @@ public interface UserProblemHistoryJpaRepository extends JpaRepository<UserProbl
             """)
     List<Long> findSolvedProblemIdsByUserIdAndChapterId(@Param("userId") Long userId, @Param("chapterId") Long chapterId);
 
+    long countByProblemId(@Param("problemId") Long problemId);
+
     @Query("""
-            SELECT h.answerStatus
+            SELECT COUNT(h)
             FROM UserProblemHistoryEntity h
             WHERE h.problemId = :problemId
+            AND h.answerStatus = :answerStatus
             """)
-    List<AnswerStatus> findAnswerStatusesByProblemId(@Param("problemId") Long problemId);
+    long countByProblemIdAndAnswerStatus(@Param("problemId") Long problemId, @Param("answerStatus") AnswerStatus answerStatus);
 }

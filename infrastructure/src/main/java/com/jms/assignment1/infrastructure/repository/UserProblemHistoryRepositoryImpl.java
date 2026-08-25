@@ -33,7 +33,12 @@ public class UserProblemHistoryRepositoryImpl implements UserProblemHistoryRepos
     }
 
     @Override
-    public List<AnswerStatus> findAnswerStatusesByProblemId(Long problemId) {
-        return userProblemHistoryJpaRepository.findAnswerStatusesByProblemId(problemId);
+    public long countByProblemId(Long problemId) {
+        return userProblemHistoryJpaRepository.countByProblemId(problemId);
+    }
+
+    @Override
+    public long countCorrectByProblemId(Long problemId) {
+        return userProblemHistoryJpaRepository.countByProblemIdAndAnswerStatus(problemId, AnswerStatus.CORRECT);
     }
 }

@@ -1,6 +1,5 @@
 package com.jms.assignment1.application.problem;
 
-import com.jms.assignment1.answer.AnswerStatus;
 import com.jms.assignment1.application.common.UserValidator;
 import com.jms.assignment1.exception.ProblemHistoryNotFoundException;
 import com.jms.assignment1.exception.ProblemNotFoundException;
@@ -11,8 +10,6 @@ import com.jms.assignment1.repository.UserProblemHistoryRepository;
 import com.jms.assignment1.service.CorrectRateCalculator;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-
-import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -44,10 +41,8 @@ public class GetProblemHistoryService implements GetProblemHistoryUseCase {
     }
 
     private Integer calculateAnswerCorrectRate(Long problemId) {
-        List<AnswerStatus> answerStatuses = userProblemHistoryRepository.findAnswerStatusesByProblemId(problemId);
-        long correctCount = answerStatuses.stream()
-                                          .filter(status -> status == AnswerStatus.CORRECT)
-                                          .count();
-        return CorrectRateCalculator.calculate(answerStatuses.size(), correctCount);
+        long totalCount = userProblemHistoryRepository.countByProblemId(problemId);
+        long correctCount = userProblemHistoryRepository.countCorrectByProblemId(problemId);
+        return CorrectRateCalculator.calculate(totalCount, correctCount);
     }
 }

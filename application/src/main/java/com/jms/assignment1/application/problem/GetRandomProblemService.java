@@ -1,6 +1,5 @@
 package com.jms.assignment1.application.problem;
 
-import com.jms.assignment1.answer.AnswerStatus;
 import com.jms.assignment1.application.common.ChapterValidator;
 import com.jms.assignment1.application.common.UserValidator;
 import com.jms.assignment1.exception.NoAvailableProblemException;
@@ -77,10 +76,8 @@ public class GetRandomProblemService implements GetRandomProblemUseCase {
     }
 
     private Integer calculateAnswerCorrectRate(Problem selectedProblem) {
-        List<AnswerStatus> answerStatuses = userProblemHistoryRepository.findAnswerStatusesByProblemId(selectedProblem.getId());
-        long correctCount = answerStatuses.stream()
-                                          .filter(status -> status == AnswerStatus.CORRECT)
-                                          .count();
-        return CorrectRateCalculator.calculate(answerStatuses.size(), correctCount);
+        long totalCount = userProblemHistoryRepository.countByProblemId(selectedProblem.getId());
+        long correctCount = userProblemHistoryRepository.countCorrectByProblemId(selectedProblem.getId());
+        return CorrectRateCalculator.calculate(totalCount, correctCount);
     }
 }
