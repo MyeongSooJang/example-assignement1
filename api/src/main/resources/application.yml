@@ -1,6 +1,6 @@
 spring:
   datasource:
-    url: jdbc:mysql://localhost:3306/assignment1?serverTimezone=UTC&characterEncoding=UTF-8
+    url: jdbc:mysql://${DB_HOST:localhost}:3306/assignment1?serverTimezone=UTC&characterEncoding=UTF-8
     username: ${DB_USERNAME:assignment}
     password: ${DB_PASSWORD:assignment}
     driver-class-name: com.mysql.cj.jdbc.Driver
