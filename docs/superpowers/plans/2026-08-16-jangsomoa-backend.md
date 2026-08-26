@@ -1,5 +1,8 @@
 # assignment1 Backend Implementation Plan
 
+> **중요:** 이 파일은 초안이다. 실제 설계는 대화를 통해 결정하며, 대화에서 결정한 사항이 이 plan보다 우선한다.
+> 현재 확정된 설계는 `docs/superpowers/specs/claude-guideline.md` 를 참고한다.
+
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
 **Goal:** DDD 헥사고날 멀티모듈 구조로 학습 플랫폼의 문제 풀이 및 이력 조회 API 구축
@@ -263,12 +266,13 @@ git commit -m "build: convert to 4-module Gradle project (domain/application/inf
 
 ```java
 // domain/src/test/java/com/jms/assignment1/domain/problem/MultipleChoiceProblemTest.java
-package com.jms.assignment1.domain.problem;
+package com.jms.assignment1.answer.problem;
 
-import com.jms.assignment1.domain.answer.AnswerStatus;
-import com.jms.assignment1.domain.answer.MultipleChoiceAnswer;
+import com.jms.assignment1.answer.answer.AnswerStatus;
+import com.jms.assignment1.answer.answer.MultipleChoiceAnswer;
 import org.junit.jupiter.api.Test;
 import java.util.List;
+
 import static org.assertj.core.api.Assertions.assertThat;
 
 class MultipleChoiceProblemTest {
@@ -304,11 +308,12 @@ class MultipleChoiceProblemTest {
 
 ```java
 // domain/src/test/java/com/jms/assignment1/domain/problem/ShortAnswerProblemTest.java
-package com.jms.assignment1.domain.problem;
+package com.jms.assignment1.answer.problem;
 
-import com.jms.assignment1.domain.answer.AnswerStatus;
-import com.jms.assignment1.domain.answer.ShortAnswer;
+import com.jms.assignment1.answer.answer.AnswerStatus;
+import com.jms.assignment1.answer.answer.ShortAnswer;
 import org.junit.jupiter.api.Test;
+
 import static org.assertj.core.api.Assertions.assertThat;
 
 class ShortAnswerProblemTest {
@@ -334,12 +339,13 @@ class ShortAnswerProblemTest {
 
 ```java
 // domain/src/test/java/com/jms/assignment1/domain/service/CorrectRateCalculatorTest.java
-package com.jms.assignment1.domain.service;
+package com.jms.assignment1.answer.service;
 
-import com.jms.assignment1.domain.answer.AnswerStatus;
+import com.jms.assignment1.answer.answer.AnswerStatus;
 import org.junit.jupiter.api.Test;
 import java.util.ArrayList;
 import java.util.List;
+
 import static org.assertj.core.api.Assertions.assertThat;
 
 class CorrectRateCalculatorTest {
@@ -353,8 +359,10 @@ class CorrectRateCalculatorTest {
     @Test
     void 제출자가_30명_이상이면_정답률_반환() {
         List<AnswerStatus> statuses = new ArrayList<>();
-        for (int i = 0; i < 20; i++) statuses.add(AnswerStatus.CORRECT);
-        for (int i = 0; i < 10; i++) statuses.add(AnswerStatus.INCORRECT);
+        for (int i = 0; i < 20; i++)
+            statuses.add(AnswerStatus.CORRECT);
+        for (int i = 0; i < 10; i++)
+            statuses.add(AnswerStatus.INCORRECT);
         // 20/30 = 66.666...% → round → 67
         assertThat(CorrectRateCalculator.calculate(statuses)).isEqualTo(67);
     }
@@ -362,8 +370,10 @@ class CorrectRateCalculatorTest {
     @Test
     void PARTIAL은_오답으로_간주() {
         List<AnswerStatus> statuses = new ArrayList<>();
-        for (int i = 0; i < 30; i++) statuses.add(AnswerStatus.CORRECT);
-        for (int i = 0; i < 10; i++) statuses.add(AnswerStatus.PARTIAL);
+        for (int i = 0; i < 30; i++)
+            statuses.add(AnswerStatus.CORRECT);
+        for (int i = 0; i < 10; i++)
+            statuses.add(AnswerStatus.PARTIAL);
         // 30/40 = 75%
         assertThat(CorrectRateCalculator.calculate(statuses)).isEqualTo(75);
     }
@@ -371,7 +381,8 @@ class CorrectRateCalculatorTest {
     @Test
     void 정확히_30명이면_계산한다() {
         List<AnswerStatus> statuses = new ArrayList<>();
-        for (int i = 0; i < 30; i++) statuses.add(AnswerStatus.CORRECT);
+        for (int i = 0; i < 30; i++)
+            statuses.add(AnswerStatus.CORRECT);
         assertThat(CorrectRateCalculator.calculate(statuses)).isEqualTo(100);
     }
 }
@@ -389,19 +400,22 @@ Expected: FAIL (클래스 없음)
 
 ```java
 // domain/src/main/java/com/jms/assignment1/domain/answer/AnswerStatus.java
-package com.jms.assignment1.domain.answer;
-public enum AnswerStatus { CORRECT, PARTIAL, INCORRECT }
+package com.jms.assignment1.answer.answer;
+
+public enum AnswerStatus {CORRECT, PARTIAL, INCORRECT}
 ```
 
 ```java
 // domain/src/main/java/com/jms/assignment1/domain/answer/AnswerType.java
-package com.jms.assignment1.domain.answer;
-public enum AnswerType { MULTIPLE_CHOICE, SHORT_ANSWER }
+package com.jms.assignment1.answer.answer;
+
+public enum AnswerType {MULTIPLE_CHOICE, SHORT_ANSWER}
 ```
 
 ```java
 // domain/src/main/java/com/jms/assignment1/domain/answer/UserAnswer.java
-package com.jms.assignment1.domain.answer;
+package com.jms.assignment1.answer.answer;
+
 public abstract class UserAnswer {
     public abstract AnswerType getType();
 }
@@ -409,7 +423,7 @@ public abstract class UserAnswer {
 
 ```java
 // domain/src/main/java/com/jms/assignment1/domain/answer/MultipleChoiceAnswer.java
-package com.jms.assignment1.domain.answer;
+package com.jms.assignment1.answer.answer;
 
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
@@ -421,13 +435,15 @@ public class MultipleChoiceAnswer extends UserAnswer {
     private final List<Integer> selectedChoices;
 
     @Override
-    public AnswerType getType() { return AnswerType.MULTIPLE_CHOICE; }
+    public AnswerType getType() {
+        return AnswerType.MULTIPLE_CHOICE;
+    }
 }
 ```
 
 ```java
 // domain/src/main/java/com/jms/assignment1/domain/answer/ShortAnswer.java
-package com.jms.assignment1.domain.answer;
+package com.jms.assignment1.answer.answer;
 
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
@@ -438,13 +454,15 @@ public class ShortAnswer extends UserAnswer {
     private final String text;
 
     @Override
-    public AnswerType getType() { return AnswerType.SHORT_ANSWER; }
+    public AnswerType getType() {
+        return AnswerType.SHORT_ANSWER;
+    }
 }
 ```
 
 ```java
 // domain/src/main/java/com/jms/assignment1/domain/problem/Problem.java
-package com.jms.assignment1.domain.problem;
+package com.jms.assignment1.answer.problem;
 
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
@@ -461,10 +479,10 @@ public abstract class Problem {
 
 ```java
 // domain/src/main/java/com/jms/assignment1/domain/problem/MultipleChoiceProblem.java
-package com.jms.assignment1.domain.problem;
+package com.jms.assignment1.answer.problem;
 
-import com.jms.assignment1.domain.answer.AnswerStatus;
-import com.jms.assignment1.domain.answer.MultipleChoiceAnswer;
+import com.jms.assignment1.answer.answer.AnswerStatus;
+import com.jms.assignment1.answer.answer.MultipleChoiceAnswer;
 import lombok.Getter;
 import java.util.HashSet;
 import java.util.List;
@@ -475,7 +493,7 @@ public class MultipleChoiceProblem extends Problem {
     private final List<Integer> correctAnswers;
 
     public MultipleChoiceProblem(Long id, Long chapterId, String content, String explanation,
-                                  List<String> choices, List<Integer> correctAnswers) {
+                                 List<String> choices, List<Integer> correctAnswers) {
         super(id, chapterId, content, explanation);
         this.choices = choices;
         this.correctAnswers = correctAnswers;
@@ -494,10 +512,10 @@ public class MultipleChoiceProblem extends Problem {
 
 ```java
 // domain/src/main/java/com/jms/assignment1/domain/problem/ShortAnswerProblem.java
-package com.jms.assignment1.domain.problem;
+package com.jms.assignment1.answer.problem;
 
-import com.jms.assignment1.domain.answer.AnswerStatus;
-import com.jms.assignment1.domain.answer.ShortAnswer;
+import com.jms.assignment1.answer.answer.AnswerStatus;
+import com.jms.assignment1.answer.answer.ShortAnswer;
 import lombok.Getter;
 
 @Getter
@@ -505,7 +523,7 @@ public class ShortAnswerProblem extends Problem {
     private final String correctAnswer;
 
     public ShortAnswerProblem(Long id, Long chapterId, String content, String explanation,
-                               String correctAnswer) {
+                              String correctAnswer) {
         super(id, chapterId, content, explanation);
         this.correctAnswer = correctAnswer;
     }
@@ -519,16 +537,17 @@ public class ShortAnswerProblem extends Problem {
 
 ```java
 // domain/src/main/java/com/jms/assignment1/domain/service/CorrectRateCalculator.java
-package com.jms.assignment1.domain.service;
+package com.jms.assignment1.answer.service;
 
-import com.jms.assignment1.domain.answer.AnswerStatus;
+import com.jms.assignment1.answer.answer.AnswerStatus;
 import java.util.List;
 
 public class CorrectRateCalculator {
     private static final int MIN_SAMPLE_SIZE = 30;
 
     public static Integer calculate(List<AnswerStatus> statuses) {
-        if (statuses.size() < MIN_SAMPLE_SIZE) return null;
+        if (statuses.size() < MIN_SAMPLE_SIZE)
+            return null;
         long correct = statuses.stream().filter(s -> s == AnswerStatus.CORRECT).count();
         return (int) Math.round((double) correct / statuses.size() * 100);
     }
@@ -585,7 +604,7 @@ git commit -m "feat: add domain problem/answer hierarchy and CorrectRateCalculat
 
 ```java
 // domain/src/main/java/com/jms/assignment1/domain/user/User.java
-package com.jms.assignment1.domain.user;
+package com.jms.assignment1.answer.user;
 
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
@@ -600,7 +619,7 @@ public class User {
 
 ```java
 // domain/src/main/java/com/jms/assignment1/domain/chapter/Chapter.java
-package com.jms.assignment1.domain.chapter;
+package com.jms.assignment1.answer.chapter;
 
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
@@ -615,7 +634,7 @@ public class Chapter {
 
 ```java
 // domain/src/main/java/com/jms/assignment1/domain/chapter/UserChapterSkip.java
-package com.jms.assignment1.domain.chapter;
+package com.jms.assignment1.answer.chapter;
 
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
@@ -632,10 +651,10 @@ public class UserChapterSkip {
 
 ```java
 // domain/src/main/java/com/jms/assignment1/domain/history/UserProblemHistory.java
-package com.jms.assignment1.domain.history;
+package com.jms.assignment1.answer.history;
 
-import com.jms.assignment1.domain.answer.AnswerStatus;
-import com.jms.assignment1.domain.answer.UserAnswer;
+import com.jms.assignment1.answer.answer.AnswerStatus;
+import com.jms.assignment1.answer.answer.UserAnswer;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
@@ -649,7 +668,7 @@ public class UserProblemHistory {
     private final UserAnswer userAnswer;
 
     public static UserProblemHistory create(Long userId, Long problemId,
-                                             AnswerStatus answerStatus, UserAnswer userAnswer) {
+                                            AnswerStatus answerStatus, UserAnswer userAnswer) {
         return new UserProblemHistory(null, userId, problemId, answerStatus, userAnswer);
     }
 }
@@ -659,40 +678,44 @@ public class UserProblemHistory {
 
 ```java
 // domain/src/main/java/com/jms/assignment1/domain/repository/ProblemRepository.java
-package com.jms.assignment1.domain.repository;
+package com.jms.assignment1.answer.repository;
 
-import com.jms.assignment1.domain.problem.Problem;
+import com.jms.assignment1.answer.problem.Problem;
 import java.util.List;
 import java.util.Optional;
 
 public interface ProblemRepository {
     Optional<Problem> findById(Long id);
+
     List<Problem> findByChapterId(Long chapterId);
 }
 ```
 
 ```java
 // domain/src/main/java/com/jms/assignment1/domain/repository/UserProblemHistoryRepository.java
-package com.jms.assignment1.domain.repository;
+package com.jms.assignment1.answer.repository;
 
-import com.jms.assignment1.domain.answer.AnswerStatus;
-import com.jms.assignment1.domain.history.UserProblemHistory;
+import com.jms.assignment1.answer.answer.AnswerStatus;
+import com.jms.assignment1.answer.history.UserProblemHistory;
 import java.util.List;
 import java.util.Optional;
 
 public interface UserProblemHistoryRepository {
     List<Long> findSolvedProblemIdsByUserIdAndChapterId(Long userId, Long chapterId);
+
     List<AnswerStatus> findAnswerStatusesByProblemId(Long problemId);
+
     void save(UserProblemHistory history);
+
     Optional<UserProblemHistory> findByUserIdAndProblemId(Long userId, Long problemId);
 }
 ```
 
 ```java
 // domain/src/main/java/com/jms/assignment1/domain/repository/ChapterRepository.java
-package com.jms.assignment1.domain.repository;
+package com.jms.assignment1.answer.repository;
 
-import com.jms.assignment1.domain.chapter.Chapter;
+import com.jms.assignment1.answer.chapter.Chapter;
 import java.util.Optional;
 
 public interface ChapterRepository {
@@ -702,21 +725,22 @@ public interface ChapterRepository {
 
 ```java
 // domain/src/main/java/com/jms/assignment1/domain/repository/UserChapterSkipRepository.java
-package com.jms.assignment1.domain.repository;
+package com.jms.assignment1.answer.repository;
 
 import java.util.Optional;
 
 public interface UserChapterSkipRepository {
     Optional<Long> findSkippedProblemId(Long userId, Long chapterId);
+
     void upsert(Long userId, Long chapterId, Long skippedProblemId);
 }
 ```
 
 ```java
 // domain/src/main/java/com/jms/assignment1/domain/repository/UserRepository.java
-package com.jms.assignment1.domain.repository;
+package com.jms.assignment1.answer.repository;
 
-import com.jms.assignment1.domain.user.User;
+import com.jms.assignment1.answer.user.User;
 import java.util.Optional;
 
 public interface UserRepository {
@@ -728,52 +752,62 @@ public interface UserRepository {
 
 ```java
 // domain/src/main/java/com/jms/assignment1/domain/exception/DomainException.java
-package com.jms.assignment1.domain.exception;
+package com.jms.assignment1.answer.exception;
 
 public abstract class DomainException extends RuntimeException {
-    protected DomainException(String message) { super(message); }
+    protected DomainException(String message) {
+        super(message);
+    }
 }
 ```
 
 ```java
 // domain/src/main/java/com/jms/assignment1/domain/exception/ProblemNotFoundException.java
-package com.jms.assignment1.domain.exception;
+package com.jms.assignment1.answer.exception;
 
 public class ProblemNotFoundException extends DomainException {
-    public ProblemNotFoundException(Long id) { super("Problem not found: " + id); }
+    public ProblemNotFoundException(Long id) {
+        super("Problem not found: " + id);
+    }
 }
 ```
 
 ```java
 // domain/src/main/java/com/jms/assignment1/domain/exception/UserNotFoundException.java
-package com.jms.assignment1.domain.exception;
+package com.jms.assignment1.answer.exception;
 
 public class UserNotFoundException extends DomainException {
-    public UserNotFoundException(Long id) { super("User not found: " + id); }
+    public UserNotFoundException(Long id) {
+        super("User not found: " + id);
+    }
 }
 ```
 
 ```java
 // domain/src/main/java/com/jms/assignment1/domain/exception/ChapterNotFoundException.java
-package com.jms.assignment1.domain.exception;
+package com.jms.assignment1.answer.exception;
 
 public class ChapterNotFoundException extends DomainException {
-    public ChapterNotFoundException(Long id) { super("Chapter not found: " + id); }
+    public ChapterNotFoundException(Long id) {
+        super("Chapter not found: " + id);
+    }
 }
 ```
 
 ```java
 // domain/src/main/java/com/jms/assignment1/domain/exception/NoAvailableProblemException.java
-package com.jms.assignment1.domain.exception;
+package com.jms.assignment1.answer.exception;
 
 public class NoAvailableProblemException extends DomainException {
-    public NoAvailableProblemException() { super("No available problem in this chapter"); }
+    public NoAvailableProblemException() {
+        super("No available problem in this chapter");
+    }
 }
 ```
 
 ```java
 // domain/src/main/java/com/jms/assignment1/domain/exception/ProblemHistoryNotFoundException.java
-package com.jms.assignment1.domain.exception;
+package com.jms.assignment1.answer.exception;
 
 public class ProblemHistoryNotFoundException extends DomainException {
     public ProblemHistoryNotFoundException(Long userId, Long problemId) {
@@ -819,15 +853,15 @@ git commit -m "feat: add domain entities, repository interfaces, and exceptions"
 // application/src/test/java/com/jms/assignment1/application/problem/GetRandomProblemUseCaseTest.java
 package com.jms.assignment1.application.problem;
 
-import com.jms.assignment1.domain.answer.AnswerStatus;
-import com.jms.assignment1.domain.chapter.Chapter;
-import com.jms.assignment1.domain.exception.ChapterNotFoundException;
-import com.jms.assignment1.domain.exception.NoAvailableProblemException;
-import com.jms.assignment1.domain.exception.UserNotFoundException;
-import com.jms.assignment1.domain.problem.MultipleChoiceProblem;
-import com.jms.assignment1.domain.problem.Problem;
-import com.jms.assignment1.domain.repository.*;
-import com.jms.assignment1.domain.user.User;
+import com.jms.assignment1.answer.answer.AnswerStatus;
+import com.jms.assignment1.answer.chapter.Chapter;
+import com.jms.assignment1.answer.exception.ChapterNotFoundException;
+import com.jms.assignment1.answer.exception.NoAvailableProblemException;
+import com.jms.assignment1.answer.exception.UserNotFoundException;
+import com.jms.assignment1.answer.problem.MultipleChoiceProblem;
+import com.jms.assignment1.answer.problem.Problem;
+import com.jms.assignment1.answer.repository.*;
+import com.jms.assignment1.answer.user.User;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -843,13 +877,19 @@ import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 class GetRandomProblemUseCaseTest {
-    @Mock private UserRepository userRepository;
-    @Mock private ChapterRepository chapterRepository;
-    @Mock private ProblemRepository problemRepository;
-    @Mock private UserProblemHistoryRepository historyRepository;
-    @Mock private UserChapterSkipRepository skipRepository;
+    @Mock
+    private UserRepository userRepository;
+    @Mock
+    private ChapterRepository chapterRepository;
+    @Mock
+    private ProblemRepository problemRepository;
+    @Mock
+    private UserProblemHistoryRepository historyRepository;
+    @Mock
+    private UserChapterSkipRepository skipRepository;
 
-    @InjectMocks private GetRandomProblemUseCase useCase;
+    @InjectMocks
+    private GetRandomProblemUseCase useCase;
 
     private final User user = new User(1L, "테스터");
     private final Chapter chapter = new Chapter(1L, "1단원");
@@ -911,8 +951,10 @@ class GetRandomProblemUseCaseTest {
                 .thenReturn(List.of());
         when(skipRepository.findSkippedProblemId(1L, 1L)).thenReturn(Optional.empty());
         List<AnswerStatus> statuses = new ArrayList<>();
-        for (int i = 0; i < 20; i++) statuses.add(AnswerStatus.CORRECT);
-        for (int i = 0; i < 10; i++) statuses.add(AnswerStatus.INCORRECT);
+        for (int i = 0; i < 20; i++)
+            statuses.add(AnswerStatus.CORRECT);
+        for (int i = 0; i < 10; i++)
+            statuses.add(AnswerStatus.INCORRECT);
         when(historyRepository.findAnswerStatusesByProblemId(2L)).thenReturn(statuses);
 
         GetRandomProblemResult result = useCase.execute(new GetRandomProblemCommand(1L, 1L));
@@ -976,11 +1018,11 @@ public record GetRandomProblemResult(
 // application/src/main/java/com/jms/assignment1/application/problem/GetRandomProblemUseCase.java
 package com.jms.assignment1.application.problem;
 
-import com.jms.assignment1.domain.exception.*;
-import com.jms.assignment1.domain.problem.MultipleChoiceProblem;
-import com.jms.assignment1.domain.problem.Problem;
-import com.jms.assignment1.domain.repository.*;
-import com.jms.assignment1.domain.service.CorrectRateCalculator;
+import com.jms.assignment1.answer.exception.*;
+import com.jms.assignment1.answer.problem.MultipleChoiceProblem;
+import com.jms.assignment1.answer.problem.Problem;
+import com.jms.assignment1.answer.repository.*;
+import com.jms.assignment1.answer.service.CorrectRateCalculator;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -1001,9 +1043,9 @@ public class GetRandomProblemUseCase {
     @Transactional
     public GetRandomProblemResult execute(GetRandomProblemCommand command) {
         userRepository.findById(command.userId())
-                .orElseThrow(() -> new UserNotFoundException(command.userId()));
+                      .orElseThrow(() -> new UserNotFoundException(command.userId()));
         chapterRepository.findById(command.chapterId())
-                .orElseThrow(() -> new ChapterNotFoundException(command.chapterId()));
+                         .orElseThrow(() -> new ChapterNotFoundException(command.chapterId()));
 
         List<Problem> allProblems = problemRepository.findByChapterId(command.chapterId());
         List<Long> solvedIds = historyRepository.findSolvedProblemIdsByUserIdAndChapterId(
@@ -1012,11 +1054,12 @@ public class GetRandomProblemUseCase {
                 command.userId(), command.chapterId());
 
         List<Problem> candidates = allProblems.stream()
-                .filter(p -> !solvedIds.contains(p.getId()))
-                .filter(p -> skippedId.map(id -> !id.equals(p.getId())).orElse(true))
-                .toList();
+                                              .filter(p -> !solvedIds.contains(p.getId()))
+                                              .filter(p -> skippedId.map(id -> !id.equals(p.getId())).orElse(true))
+                                              .toList();
 
-        if (candidates.isEmpty()) throw new NoAvailableProblemException();
+        if (candidates.isEmpty())
+            throw new NoAvailableProblemException();
 
         Problem selected = candidates.get(new Random().nextInt(candidates.size()));
         skipRepository.upsert(command.userId(), command.chapterId(), selected.getId());
@@ -1070,15 +1113,15 @@ git commit -m "feat: add GetRandomProblemUseCase"
 // application/src/test/java/com/jms/assignment1/application/problem/SubmitAnswerUseCaseTest.java
 package com.jms.assignment1.application.problem;
 
-import com.jms.assignment1.domain.answer.AnswerStatus;
-import com.jms.assignment1.domain.answer.AnswerType;
-import com.jms.assignment1.domain.exception.ProblemNotFoundException;
-import com.jms.assignment1.domain.exception.UserNotFoundException;
-import com.jms.assignment1.domain.history.UserProblemHistory;
-import com.jms.assignment1.domain.problem.MultipleChoiceProblem;
-import com.jms.assignment1.domain.problem.ShortAnswerProblem;
-import com.jms.assignment1.domain.repository.*;
-import com.jms.assignment1.domain.user.User;
+import com.jms.assignment1.answer.answer.AnswerStatus;
+import com.jms.assignment1.answer.answer.AnswerType;
+import com.jms.assignment1.answer.exception.ProblemNotFoundException;
+import com.jms.assignment1.answer.exception.UserNotFoundException;
+import com.jms.assignment1.answer.history.UserProblemHistory;
+import com.jms.assignment1.answer.problem.MultipleChoiceProblem;
+import com.jms.assignment1.answer.problem.ShortAnswerProblem;
+import com.jms.assignment1.answer.repository.*;
+import com.jms.assignment1.answer.user.User;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
@@ -1094,11 +1137,15 @@ import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 class SubmitAnswerUseCaseTest {
-    @Mock private UserRepository userRepository;
-    @Mock private ProblemRepository problemRepository;
-    @Mock private UserProblemHistoryRepository historyRepository;
+    @Mock
+    private UserRepository userRepository;
+    @Mock
+    private ProblemRepository problemRepository;
+    @Mock
+    private UserProblemHistoryRepository historyRepository;
 
-    @InjectMocks private SubmitAnswerUseCase useCase;
+    @InjectMocks
+    private SubmitAnswerUseCase useCase;
 
     private final User user = new User(1L, "테스터");
     private final MultipleChoiceProblem mcProblem = new MultipleChoiceProblem(
@@ -1194,7 +1241,7 @@ Expected: FAIL
 // application/src/main/java/com/jms/assignment1/application/problem/SubmitAnswerCommand.java
 package com.jms.assignment1.application.problem;
 
-import com.jms.assignment1.domain.answer.AnswerType;
+import com.jms.assignment1.answer.answer.AnswerType;
 import java.util.List;
 
 public record SubmitAnswerCommand(
@@ -1203,14 +1250,15 @@ public record SubmitAnswerCommand(
         AnswerType answerType,
         List<Integer> selectedChoices,  // MULTIPLE_CHOICE용. SHORT_ANSWER이면 null
         String text                     // SHORT_ANSWER용. MULTIPLE_CHOICE이면 null
-) {}
+) {
+}
 ```
 
 ```java
 // application/src/main/java/com/jms/assignment1/application/problem/SubmitAnswerResult.java
 package com.jms.assignment1.application.problem;
 
-import com.jms.assignment1.domain.answer.AnswerStatus;
+import com.jms.assignment1.answer.answer.AnswerStatus;
 import java.util.List;
 
 public record SubmitAnswerResult(
@@ -1218,18 +1266,19 @@ public record SubmitAnswerResult(
         String explanation,
         List<Integer> correctChoices,   // 객관식만. 주관식은 null
         String correctText              // 주관식만. 객관식은 null
-) {}
+) {
+}
 ```
 
 ```java
 // application/src/main/java/com/jms/assignment1/application/problem/SubmitAnswerUseCase.java
 package com.jms.assignment1.application.problem;
 
-import com.jms.assignment1.domain.answer.*;
-import com.jms.assignment1.domain.exception.*;
-import com.jms.assignment1.domain.history.UserProblemHistory;
-import com.jms.assignment1.domain.problem.*;
-import com.jms.assignment1.domain.repository.*;
+import com.jms.assignment1.answer.answer.*;
+import com.jms.assignment1.answer.exception.*;
+import com.jms.assignment1.answer.history.UserProblemHistory;
+import com.jms.assignment1.answer.problem.*;
+import com.jms.assignment1.answer.repository.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -1246,9 +1295,9 @@ public class SubmitAnswerUseCase {
     @Transactional
     public SubmitAnswerResult execute(SubmitAnswerCommand command) {
         userRepository.findById(command.userId())
-                .orElseThrow(() -> new UserNotFoundException(command.userId()));
+                      .orElseThrow(() -> new UserNotFoundException(command.userId()));
         Problem problem = problemRepository.findById(command.problemId())
-                .orElseThrow(() -> new ProblemNotFoundException(command.problemId()));
+                                           .orElseThrow(() -> new ProblemNotFoundException(command.problemId()));
 
         AnswerStatus status;
         List<Integer> correctChoices = null;
@@ -1314,13 +1363,13 @@ git commit -m "feat: add SubmitAnswerUseCase"
 // application/src/test/java/com/jms/assignment1/application/problem/GetProblemHistoryUseCaseTest.java
 package com.jms.assignment1.application.problem;
 
-import com.jms.assignment1.domain.answer.*;
-import com.jms.assignment1.domain.exception.*;
-import com.jms.assignment1.domain.history.UserProblemHistory;
-import com.jms.assignment1.domain.problem.MultipleChoiceProblem;
-import com.jms.assignment1.domain.problem.ShortAnswerProblem;
-import com.jms.assignment1.domain.repository.*;
-import com.jms.assignment1.domain.user.User;
+import com.jms.assignment1.answer.answer.*;
+import com.jms.assignment1.answer.exception.*;
+import com.jms.assignment1.answer.history.UserProblemHistory;
+import com.jms.assignment1.answer.problem.MultipleChoiceProblem;
+import com.jms.assignment1.answer.problem.ShortAnswerProblem;
+import com.jms.assignment1.answer.repository.*;
+import com.jms.assignment1.answer.user.User;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -1335,11 +1384,15 @@ import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 class GetProblemHistoryUseCaseTest {
-    @Mock private UserRepository userRepository;
-    @Mock private ProblemRepository problemRepository;
-    @Mock private UserProblemHistoryRepository historyRepository;
+    @Mock
+    private UserRepository userRepository;
+    @Mock
+    private ProblemRepository problemRepository;
+    @Mock
+    private UserProblemHistoryRepository historyRepository;
 
-    @InjectMocks private GetProblemHistoryUseCase useCase;
+    @InjectMocks
+    private GetProblemHistoryUseCase useCase;
 
     private final User user = new User(1L, "테스터");
     private final MultipleChoiceProblem mcProblem = new MultipleChoiceProblem(
@@ -1415,7 +1468,7 @@ public record GetProblemHistoryCommand(Long userId, Long problemId) {}
 // application/src/main/java/com/jms/assignment1/application/problem/GetProblemHistoryResult.java
 package com.jms.assignment1.application.problem;
 
-import com.jms.assignment1.domain.answer.AnswerStatus;
+import com.jms.assignment1.answer.answer.AnswerStatus;
 import java.util.List;
 
 public record GetProblemHistoryResult(
@@ -1427,19 +1480,20 @@ public record GetProblemHistoryResult(
         List<Integer> userChoices,      // 객관식 제출 답. 주관식은 null
         String userText,                // 주관식 제출 답. 객관식은 null
         Integer answerCorrectRate
-) {}
+) {
+}
 ```
 
 ```java
 // application/src/main/java/com/jms/assignment1/application/problem/GetProblemHistoryUseCase.java
 package com.jms.assignment1.application.problem;
 
-import com.jms.assignment1.domain.answer.*;
-import com.jms.assignment1.domain.exception.*;
-import com.jms.assignment1.domain.history.UserProblemHistory;
-import com.jms.assignment1.domain.problem.*;
-import com.jms.assignment1.domain.repository.*;
-import com.jms.assignment1.domain.service.CorrectRateCalculator;
+import com.jms.assignment1.answer.answer.*;
+import com.jms.assignment1.answer.exception.*;
+import com.jms.assignment1.answer.history.UserProblemHistory;
+import com.jms.assignment1.answer.problem.*;
+import com.jms.assignment1.answer.repository.*;
+import com.jms.assignment1.answer.service.CorrectRateCalculator;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -1456,9 +1510,9 @@ public class GetProblemHistoryUseCase {
     @Transactional(readOnly = true)
     public GetProblemHistoryResult execute(GetProblemHistoryCommand command) {
         userRepository.findById(command.userId())
-                .orElseThrow(() -> new UserNotFoundException(command.userId()));
+                      .orElseThrow(() -> new UserNotFoundException(command.userId()));
         Problem problem = problemRepository.findById(command.problemId())
-                .orElseThrow(() -> new ProblemNotFoundException(command.problemId()));
+                                           .orElseThrow(() -> new ProblemNotFoundException(command.problemId()));
         UserProblemHistory history = historyRepository
                 .findByUserIdAndProblemId(command.userId(), command.problemId())
                 .orElseThrow(() -> new ProblemHistoryNotFoundException(
@@ -1706,7 +1760,7 @@ public interface ProblemJpaRepository extends JpaRepository<ProblemJpaEntity, Lo
 // infrastructure/src/main/java/com/jms/assignment1/infrastructure/jpa/history/UserProblemHistoryJpaEntity.java
 package com.jms.assignment1.infrastructure.jpa.history;
 
-import com.jms.assignment1.domain.answer.AnswerStatus;
+import com.jms.assignment1.answer.answer.AnswerStatus;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -1716,17 +1770,23 @@ import lombok.*;
 @NoArgsConstructor
 @AllArgsConstructor
 public class UserProblemHistoryJpaEntity {
-    @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "user_id", nullable = false) private Long userId;
-    @Column(name = "problem_id", nullable = false) private Long problemId;
+    @Column(name = "user_id", nullable = false)
+    private Long userId;
+    @Column(name = "problem_id", nullable = false)
+    private Long problemId;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "answer_status", nullable = false) private AnswerStatus answerStatus;
+    @Column(name = "answer_status", nullable = false)
+    private AnswerStatus answerStatus;
 
-    @Column(name = "answer_type", nullable = false) private String answerType;
-    @Column(name = "answer_value", nullable = false, columnDefinition = "TEXT") private String answerValue;
+    @Column(name = "answer_type", nullable = false)
+    private String answerType;
+    @Column(name = "answer_value", nullable = false, columnDefinition = "TEXT")
+    private String answerValue;
 }
 ```
 
@@ -1734,7 +1794,7 @@ public class UserProblemHistoryJpaEntity {
 // infrastructure/src/main/java/com/jms/assignment1/infrastructure/jpa/history/UserProblemHistoryJpaRepository.java
 package com.jms.assignment1.infrastructure.jpa.history;
 
-import com.jms.assignment1.domain.answer.AnswerStatus;
+import com.jms.assignment1.answer.answer.AnswerStatus;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -1747,8 +1807,8 @@ public interface UserProblemHistoryJpaRepository
     Optional<UserProblemHistoryJpaEntity> findByUserIdAndProblemId(Long userId, Long problemId);
 
     @Query("SELECT h.problemId FROM UserProblemHistoryJpaEntity h " +
-           "JOIN ProblemJpaEntity p ON h.problemId = p.id " +
-           "WHERE h.userId = :userId AND p.chapterId = :chapterId")
+            "JOIN ProblemJpaEntity p ON h.problemId = p.id " +
+            "WHERE h.userId = :userId AND p.chapterId = :chapterId")
     List<Long> findSolvedProblemIdsByUserIdAndChapterId(
             @Param("userId") Long userId, @Param("chapterId") Long chapterId);
 
@@ -1875,9 +1935,9 @@ git commit -m "feat: add JPA entities, Spring Data repositories, and JSON conver
 // infrastructure/src/test/java/com/jms/assignment1/infrastructure/jpa/problem/ProblemRepositoryImplTest.java
 package com.jms.assignment1.infrastructure.jpa.problem;
 
-import com.jms.assignment1.domain.problem.MultipleChoiceProblem;
-import com.jms.assignment1.domain.problem.Problem;
-import com.jms.assignment1.domain.problem.ShortAnswerProblem;
+import com.jms.assignment1.answer.problem.MultipleChoiceProblem;
+import com.jms.assignment1.answer.problem.Problem;
+import com.jms.assignment1.answer.problem.ShortAnswerProblem;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
@@ -1892,17 +1952,18 @@ import static org.assertj.core.api.Assertions.assertThat;
 @DataJpaTest
 @Import(ProblemRepositoryImpl.class)
 @Sql(statements = {
-    "INSERT INTO chapter (id, name) VALUES (1, '1단원')",
-    "INSERT INTO problem (id, chapter_id, content, explanation, problem_type) " +
-        "VALUES (1, 1, '객관식문제', '객관식해설', 'MULTIPLE_CHOICE')",
-    "INSERT INTO multiple_choice_problem (id, choices, correct_answers) " +
-        "VALUES (1, '[\"가\",\"나\",\"다\",\"라\",\"마\"]', '[1,2]')",
-    "INSERT INTO problem (id, chapter_id, content, explanation, problem_type) " +
-        "VALUES (2, 1, '주관식문제', '주관식해설', 'SHORT_ANSWER')",
-    "INSERT INTO short_answer_problem (id, correct_answer) VALUES (2, '서울')"
+        "INSERT INTO chapter (id, name) VALUES (1, '1단원')",
+        "INSERT INTO problem (id, chapter_id, content, explanation, problem_type) " +
+                "VALUES (1, 1, '객관식문제', '객관식해설', 'MULTIPLE_CHOICE')",
+        "INSERT INTO multiple_choice_problem (id, choices, correct_answers) " +
+                "VALUES (1, '[\"가\",\"나\",\"다\",\"라\",\"마\"]', '[1,2]')",
+        "INSERT INTO problem (id, chapter_id, content, explanation, problem_type) " +
+                "VALUES (2, 1, '주관식문제', '주관식해설', 'SHORT_ANSWER')",
+        "INSERT INTO short_answer_problem (id, correct_answer) VALUES (2, '서울')"
 })
 class ProblemRepositoryImplTest {
-    @Autowired private ProblemRepositoryImpl problemRepository;
+    @Autowired
+    private ProblemRepositoryImpl problemRepository;
 
     @Test
     void chapterId로_두_문제_조회() {
@@ -1948,8 +2009,8 @@ Expected: FAIL (ProblemRepositoryImpl 없음)
 // infrastructure/src/main/java/com/jms/assignment1/infrastructure/jpa/problem/ProblemRepositoryImpl.java
 package com.jms.assignment1.infrastructure.jpa.problem;
 
-import com.jms.assignment1.domain.problem.*;
-import com.jms.assignment1.domain.repository.ProblemRepository;
+import com.jms.assignment1.answer.problem.*;
+import com.jms.assignment1.answer.repository.ProblemRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 import java.util.List;
@@ -1973,11 +2034,11 @@ public class ProblemRepositoryImpl implements ProblemRepository {
     private Problem toDomain(ProblemJpaEntity entity) {
         if (entity instanceof MultipleChoiceProblemJpaEntity mce) {
             return new MultipleChoiceProblem(entity.getId(), entity.getChapterId(),
-                    entity.getContent(), entity.getExplanation(),
-                    mce.getChoices(), mce.getCorrectAnswers());
+                                             entity.getContent(), entity.getExplanation(),
+                                             mce.getChoices(), mce.getCorrectAnswers());
         } else if (entity instanceof ShortAnswerProblemJpaEntity sae) {
             return new ShortAnswerProblem(entity.getId(), entity.getChapterId(),
-                    entity.getContent(), entity.getExplanation(), sae.getCorrectAnswer());
+                                          entity.getContent(), entity.getExplanation(), sae.getCorrectAnswer());
         }
         throw new IllegalStateException("Unknown entity type: " + entity.getClass());
     }
@@ -1991,9 +2052,9 @@ package com.jms.assignment1.infrastructure.jpa.history;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.jms.assignment1.domain.answer.*;
-import com.jms.assignment1.domain.history.UserProblemHistory;
-import com.jms.assignment1.domain.repository.UserProblemHistoryRepository;
+import com.jms.assignment1.answer.answer.*;
+import com.jms.assignment1.answer.history.UserProblemHistory;
+import com.jms.assignment1.answer.repository.UserProblemHistoryRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 import java.util.List;
@@ -2033,24 +2094,31 @@ public class UserProblemHistoryRepositoryImpl implements UserProblemHistoryRepos
         try {
             if (answer instanceof MultipleChoiceAnswer mca)
                 return objectMapper.writeValueAsString(mca.getSelectedChoices());
-            if (answer instanceof ShortAnswer sa) return sa.getText();
+            if (answer instanceof ShortAnswer sa)
+                return sa.getText();
             throw new IllegalStateException("Unknown answer type");
-        } catch (JsonProcessingException e) { throw new IllegalStateException(e); }
+        } catch (JsonProcessingException e) {
+            throw new IllegalStateException(e);
+        }
     }
 
     private UserProblemHistory toDomain(UserProblemHistoryJpaEntity entity) {
         return new UserProblemHistory(entity.getId(), entity.getUserId(), entity.getProblemId(),
-                entity.getAnswerStatus(), toUserAnswer(entity.getAnswerType(), entity.getAnswerValue()));
+                                      entity.getAnswerStatus(),
+                                      toUserAnswer(entity.getAnswerType(), entity.getAnswerValue()));
     }
 
     private UserAnswer toUserAnswer(String answerType, String answerValue) {
         try {
             if (AnswerType.MULTIPLE_CHOICE.name().equals(answerType)) {
-                List<Integer> choices = objectMapper.readValue(answerValue, new TypeReference<>() {});
+                List<Integer> choices = objectMapper.readValue(answerValue, new TypeReference<>() {
+                });
                 return new MultipleChoiceAnswer(choices);
             }
             return new ShortAnswer(answerValue);
-        } catch (JsonProcessingException e) { throw new IllegalStateException(e); }
+        } catch (JsonProcessingException e) {
+            throw new IllegalStateException(e);
+        }
     }
 }
 ```
@@ -2059,8 +2127,8 @@ public class UserProblemHistoryRepositoryImpl implements UserProblemHistoryRepos
 // infrastructure/src/main/java/com/jms/assignment1/infrastructure/jpa/chapter/ChapterRepositoryImpl.java
 package com.jms.assignment1.infrastructure.jpa.chapter;
 
-import com.jms.assignment1.domain.chapter.Chapter;
-import com.jms.assignment1.domain.repository.ChapterRepository;
+import com.jms.assignment1.answer.chapter.Chapter;
+import com.jms.assignment1.answer.repository.ChapterRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 import java.util.Optional;
@@ -2081,7 +2149,7 @@ public class ChapterRepositoryImpl implements ChapterRepository {
 // infrastructure/src/main/java/com/jms/assignment1/infrastructure/jpa/chapter/UserChapterSkipRepositoryImpl.java
 package com.jms.assignment1.infrastructure.jpa.chapter;
 
-import com.jms.assignment1.domain.repository.UserChapterSkipRepository;
+import com.jms.assignment1.answer.repository.UserChapterSkipRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
@@ -2095,7 +2163,7 @@ public class UserChapterSkipRepositoryImpl implements UserChapterSkipRepository 
     @Override
     public Optional<Long> findSkippedProblemId(Long userId, Long chapterId) {
         return jpaRepository.findByUserIdAndChapterId(userId, chapterId)
-                .map(UserChapterSkipJpaEntity::getSkippedProblemId);
+                            .map(UserChapterSkipJpaEntity::getSkippedProblemId);
     }
 
     @Override
@@ -2113,8 +2181,8 @@ public class UserChapterSkipRepositoryImpl implements UserChapterSkipRepository 
 // infrastructure/src/main/java/com/jms/assignment1/infrastructure/jpa/user/UserRepositoryImpl.java
 package com.jms.assignment1.infrastructure.jpa.user;
 
-import com.jms.assignment1.domain.repository.UserRepository;
-import com.jms.assignment1.domain.user.User;
+import com.jms.assignment1.answer.repository.UserRepository;
+import com.jms.assignment1.answer.user.User;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 import java.util.Optional;
@@ -2413,14 +2481,15 @@ public record SubmitAnswerRequest(
 package com.jms.assignment1.api.problem.dto;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
-import com.jms.assignment1.domain.answer.AnswerStatus;
+import com.jms.assignment1.answer.answer.AnswerStatus;
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public record SubmitAnswerResponse(
         AnswerStatus answerStatus,
         String explanation,
         Object correctAnswers   // 객관식: List<Integer>, 주관식: String
-) {}
+) {
+}
 ```
 
 ```java
@@ -2428,7 +2497,7 @@ public record SubmitAnswerResponse(
 package com.jms.assignment1.api.problem.dto;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
-import com.jms.assignment1.domain.answer.AnswerStatus;
+import com.jms.assignment1.answer.answer.AnswerStatus;
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public record GetProblemHistoryResponse(
@@ -2438,7 +2507,8 @@ public record GetProblemHistoryResponse(
         Object problemAnswers,     // 객관식: List<Integer>, 주관식: String
         Object userAnswers,        // 객관식: List<Integer>, 주관식: String
         Integer answerCorrectRate
-) {}
+) {
+}
 ```
 
 - [ ] **Step 5: 예외 핸들러 작성**
@@ -2454,7 +2524,7 @@ public record ErrorResponse(String message) {}
 // api/src/main/java/com/jms/assignment1/api/exception/GlobalExceptionHandler.java
 package com.jms.assignment1.api.exception;
 
-import com.jms.assignment1.domain.exception.*;
+import com.jms.assignment1.answer.exception.*;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -2477,7 +2547,7 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ErrorResponse> handleGeneral(Exception e) {
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body(new ErrorResponse("Internal server error"));
+                             .body(new ErrorResponse("Internal server error"));
     }
 }
 ```
@@ -2490,7 +2560,7 @@ package com.jms.assignment1.api.problem;
 
 import com.jms.assignment1.api.problem.dto.*;
 import com.jms.assignment1.application.problem.*;
-import com.jms.assignment1.domain.answer.AnswerType;
+import com.jms.assignment1.answer.answer.AnswerType;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -2542,7 +2612,7 @@ public class ProblemController {
         Object problemAnswers = r.problemAnswers() != null ? r.problemAnswers() : r.problemCorrectText();
         Object userAnswers = r.userChoices() != null ? r.userChoices() : r.userText();
         return new GetProblemHistoryResponse(r.problemId(), r.answerStatus(), r.explanation(),
-                problemAnswers, userAnswers, r.answerCorrectRate());
+                                             problemAnswers, userAnswers, r.answerCorrectRate());
     }
 }
 ```
