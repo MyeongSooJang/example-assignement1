@@ -11,10 +11,11 @@ services:
       MYSQL_USER: assignment
       MYSQL_PASSWORD: assignment
     healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      test: ["CMD", "mysql", "-h", "localhost", "-u", "assignment", "-passignment", "-e", "SELECT 1"]
       interval: 5s
       timeout: 3s
-      retries: 10
+      retries: 15
+      start_period: 10s
 
   app:
     build: .
@@ -25,3 +26,4 @@ services:
     depends_on:
       db:
         condition: service_healthy
+    restart: on-failure
