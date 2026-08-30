@@ -7,7 +7,7 @@ DDD 헥사고날 멀티모듈 학습 플랫폼 백엔드.
 
 ## 문서 우선순위
 
-`docs/superpowers/specs/claude-guideline.md` > `docs/superpowers/plans/` > 기본 동작
+`DESIGN_DISCUSSION.md` > 기본 동작
 plan 파일은 초안이다. 대화에서 결정한 사항이 plan보다 우선한다.
 
 ## 설계 진행 방식
