@@ -1,6 +1,7 @@
 package com.jms.assignment1.infrastructure.repository;
 
 import com.jms.assignment1.problem.Problem;
+import com.jms.assignment1.problem.Problems;
 import com.jms.assignment1.repository.ProblemRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
@@ -20,9 +21,10 @@ public class ProblemRepositoryImpl implements ProblemRepository {
     }
 
     @Override
-    public List<Problem> findByChapterId(Long chapterId) {
-        return problemJpaRepository.findByChapterId(chapterId).stream()
-                                   .map(entity -> entity.toDomain())
-                                   .toList();
+    public Problems findByChapterId(Long chapterId) {
+        List<Problem> problems = problemJpaRepository.findByChapterId(chapterId).stream()
+                                                     .map(entity -> entity.toDomain())
+                                                     .toList();
+        return new Problems(chapterId, problems);
     }
 }

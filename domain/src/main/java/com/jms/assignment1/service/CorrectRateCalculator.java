@@ -2,7 +2,7 @@ package com.jms.assignment1.service;
 
 public class CorrectRateCalculator {
 
-    public static Integer calculate(long totalAttempts, long correctCount) {
+    public Integer calculate(long totalAttempts, long correctCount) {
         if (totalAttempts < 30) {
             return null;
         }

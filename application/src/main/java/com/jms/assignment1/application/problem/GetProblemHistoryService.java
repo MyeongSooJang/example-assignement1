@@ -18,6 +18,7 @@ public class GetProblemHistoryService implements GetProblemHistoryUseCase {
     private final UserValidator userValidator;
     private final ProblemRepository problemRepository;
     private final UserProblemHistoryRepository userProblemHistoryRepository;
+    private final CorrectRateCalculator correctRateCalculator;
 
     @Override
     public ProblemHistoryResult execute(Long userId, Long problemId) {
@@ -43,6 +44,6 @@ public class GetProblemHistoryService implements GetProblemHistoryUseCase {
     private Integer calculateAnswerCorrectRate(Long problemId) {
         long totalCount = userProblemHistoryRepository.countByProblemId(problemId);
         long correctCount = userProblemHistoryRepository.countCorrectByProblemId(problemId);
-        return CorrectRateCalculator.calculate(totalCount, correctCount);
+        return correctRateCalculator.calculate(totalCount, correctCount);
     }
 }
