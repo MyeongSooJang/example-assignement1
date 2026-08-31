@@ -12,7 +12,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.HashSet;
-import java.util.Optional;
 import java.util.Set;
 
 
@@ -25,7 +24,7 @@ public class GetRandomProblemService implements GetRandomProblemUseCase {
     private final UserChapterSkipRepository userChapterSkipRepository;
     private final UserValidator userValidator;
     private final ChapterValidator chapterValidator;
-    private final CorrectRateCalculator correctRateCalculator;
+    private final CorrectRateCalculator correctRateCalculator = new CorrectRateCalculator();
 
     @Override
     public RandomProblemResult execute(Long userId, Long chapterId) {

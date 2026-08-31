@@ -18,7 +18,7 @@ public class GetProblemHistoryService implements GetProblemHistoryUseCase {
     private final UserValidator userValidator;
     private final ProblemRepository problemRepository;
     private final UserProblemHistoryRepository userProblemHistoryRepository;
-    private final CorrectRateCalculator correctRateCalculator;
+    private final CorrectRateCalculator correctRateCalculator = new CorrectRateCalculator();
 
     @Override
     public ProblemHistoryResult execute(Long userId, Long problemId) {
