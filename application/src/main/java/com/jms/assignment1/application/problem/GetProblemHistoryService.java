@@ -7,7 +7,7 @@ import com.jms.assignment1.history.UserProblemHistory;
 import com.jms.assignment1.problem.Problem;
 import com.jms.assignment1.repository.ProblemRepository;
 import com.jms.assignment1.repository.UserProblemHistoryRepository;
-import com.jms.assignment1.service.CorrectRateCalculator;
+import com.jms.assignment1.service.ProblemCorrectRateService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -18,7 +18,7 @@ public class GetProblemHistoryService implements GetProblemHistoryUseCase {
     private final UserValidator userValidator;
     private final ProblemRepository problemRepository;
     private final UserProblemHistoryRepository userProblemHistoryRepository;
-    private final CorrectRateCalculator correctRateCalculator = new CorrectRateCalculator();
+    private final ProblemCorrectRateService problemCorrectRateService;
 
     @Override
     public ProblemHistoryResult execute(Long userId, Long problemId) {
@@ -26,7 +26,7 @@ public class GetProblemHistoryService implements GetProblemHistoryUseCase {
 
         Problem problem = findProblem(problemId);
         UserProblemHistory userProblemHistory = findHistory(userId, problemId);
-        Integer answerCorrectRate = calculateAnswerCorrectRate(problemId);
+        Integer answerCorrectRate = problemCorrectRateService.calculate(problemId);
 
         return new ProblemHistoryResult(problem, userProblemHistory, answerCorrectRate);
     }
@@ -39,11 +39,5 @@ public class GetProblemHistoryService implements GetProblemHistoryUseCase {
     private UserProblemHistory findHistory(Long userId, Long problemId) {
         return userProblemHistoryRepository.findByUserIdAndProblemId(userId, problemId)
                                            .orElseThrow(() -> new ProblemHistoryNotFoundException(userId, problemId));
-    }
-
-    private Integer calculateAnswerCorrectRate(Long problemId) {
-        long totalCount = userProblemHistoryRepository.countByProblemId(problemId);
-        long correctCount = userProblemHistoryRepository.countCorrectByProblemId(problemId);
-        return correctRateCalculator.calculate(totalCount, correctCount);
     }
 }

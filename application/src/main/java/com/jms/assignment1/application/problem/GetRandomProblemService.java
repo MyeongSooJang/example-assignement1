@@ -7,7 +7,7 @@ import com.jms.assignment1.problem.Problems;
 import com.jms.assignment1.repository.ProblemRepository;
 import com.jms.assignment1.repository.UserChapterSkipRepository;
 import com.jms.assignment1.repository.UserProblemHistoryRepository;
-import com.jms.assignment1.service.CorrectRateCalculator;
+import com.jms.assignment1.service.ProblemCorrectRateService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -24,7 +24,7 @@ public class GetRandomProblemService implements GetRandomProblemUseCase {
     private final UserChapterSkipRepository userChapterSkipRepository;
     private final UserValidator userValidator;
     private final ChapterValidator chapterValidator;
-    private final CorrectRateCalculator correctRateCalculator = new CorrectRateCalculator();
+    private final ProblemCorrectRateService problemCorrectRateService;
 
     @Override
     public RandomProblemResult execute(Long userId, Long chapterId) {
@@ -35,7 +35,7 @@ public class GetRandomProblemService implements GetRandomProblemUseCase {
         Problems chapterProblems = problemRepository.findByChapterId(chapterId);
         Problem selectedProblem = chapterProblems.excluding(excludedProblemIds).pickRandom();
 
-        Integer answerCorrectRate = calculateAnswerCorrectRate(selectedProblem);
+        Integer answerCorrectRate = problemCorrectRateService.calculate(selectedProblem.getId());
 
         return new RandomProblemResult(selectedProblem, answerCorrectRate);
     }
@@ -47,11 +47,5 @@ public class GetRandomProblemService implements GetRandomProblemUseCase {
         userChapterSkipRepository.findSkippedProblemIdByUserIdAndChapterId(userId, chapterId)
                                  .ifPresent(excludedProblemIds::add);
         return excludedProblemIds;
-    }
-
-    private Integer calculateAnswerCorrectRate(Problem selectedProblem) {
-        long totalCount = userProblemHistoryRepository.countByProblemId(selectedProblem.getId());
-        long correctCount = userProblemHistoryRepository.countCorrectByProblemId(selectedProblem.getId());
-        return correctRateCalculator.calculate(totalCount, correctCount);
     }
 }
